@@ -1,0 +1,5 @@
+# IDE/Editor-related files
+.vscode
+
+# Contents of output directory
+build/*
