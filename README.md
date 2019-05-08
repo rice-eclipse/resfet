@@ -8,3 +8,8 @@ robust (and better documented :-P) than its predecessor.
 
 [RESFET Dashboard](https://www.github.com/rice-eclipse/resfet-dashboard) is the
 frontend that is used to communicate with RESFET.
+
+### License
+Copyright (c) Rice Eclipse. All rights reserved.
+
+Licensed under [GNU General Public License v3.0](https://github.com/rice-eclipse/resfet/blob/master/LICENSE).
