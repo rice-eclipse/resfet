@@ -3,3 +3,6 @@
 
 # Contents of output directory
 build/*
+
+# OS-related files
+.DS_Store
