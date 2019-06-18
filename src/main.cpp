@@ -3,20 +3,45 @@
 
 #include "networking/Tcp.hpp"
 
+// Simple recv test for TCP interface
 int main() {
-    Tcp::ListenSocket liSock(1234);
-    liSock.listen();
+    // Try to open a socket for listening
+    Tcp::ListenSocket liSock;
+    try {
+        liSock = Tcp::ListenSocket(1234);
+        liSock.listen();
+    } catch (Tcp::OpFailureException&) {
+        std::cerr << "Could not create/open listening socket" << std::endl;
+        return -1;
+    }
 
+    Tcp::ConnSocket coSock;
     while (true) {
-        Tcp::ConnSocket coSock = liSock.accept();
+        // Try to accept an incoming request
+        try {
+            coSock = liSock.accept();
+        } catch (Tcp::OpFailureException&) {
+            std::cerr << "Unable to accept a connection" << std::endl;
+            return -1;
+        }
         std::cout << "Connected to client!\n"
                   << "Hostname: " << coSock.getClientHostname() << "\n"
                   << "Service: " << coSock.getClientService() << std::endl;
+        
+        // Read individual bytes until '0', then quit and wait for another request
         uint8_t read;
-        while ((read = coSock.recvByte()) != '0') {
-            std::cout << "Read byte: " << read << std::endl;
+        try {
+            while ((read = coSock.recvByte()) != '0') {
+                std::cout << "Read byte: " << read << std::endl;
+            }
+            std::cout << "Read 0: " << read << std::endl;
+        } catch (Tcp::ClientDisconnectException&) {
+            std::cerr << "Client disconnected prematurely, waiting for new connection..."
+                      << std::endl;
+        } catch (Tcp::OpFailureException&) {
+            std::cerr << "Problem reading, closing connection" << std::endl;
         }
-        std::cout << "Read quit byte (0): " << read << std::endl;
+
         coSock.close();
     }
 

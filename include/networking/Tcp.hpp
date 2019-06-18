@@ -14,6 +14,7 @@
 
 #include <cstddef> // for size_t
 #include <cstdint> // for uint8_t
+#include <exception>
 #include <string>
 
 // Backlog for pending connections on listening sockets
@@ -35,6 +36,12 @@ namespace Tcp {
     class ListenSocket;
 
     class ConnSocket;
+
+    class OpFailureException;
+
+    class BadSocketException;
+
+    class ClientDisconnectException;
 
     /**
      * @brief Represents a socket used to listen for incoming connections. 
@@ -64,17 +71,23 @@ namespace Tcp {
             // Constructors and destructors
 
             /**
+             * @brief Default constructor. Sets up a blank, nonfunctional
+             *        ListenSocket.
+             */
+            ListenSocket();
+
+            /**
              * @brief Create a new ListenSocket associated with the given port.
              *        The socket is not yet listening.
              * 
              * @param port the port to listen on
-             * @throw SocketCreateFailureException if the socket could not be
-             *        created TODO
+             * @throw OpFailureException if the socket could not be created
              */
             ListenSocket(int port);
 
             /**
-             * @brief Destroy this socket. Also closes the socket. 
+             * @brief Destroy this socket. The socket must be closed manually
+             *        prior to destruction!
              */
             ~ListenSocket();
 
@@ -83,7 +96,7 @@ namespace Tcp {
             /**
              * @brief Start the socket listening for connections on port.
              * 
-             * @throw ListenFailureException if the listen fails TODO
+             * @throw OpFailureException if the listen fails
              */
             void listen();
 
@@ -93,14 +106,14 @@ namespace Tcp {
              *        connection must be closed separately.
              * 
              * @return a ConnSocket representing the accepted connection
-             * @throw AcceptFailureException if the accept fails TODO
+             * @throw OpFailureException if the accept fails
              */
             ConnSocket accept();
 
             /**
              * @brief Close this socket. Any unaccepted requests are rejected.
              * 
-             * @throw CloseFailureException if the socket could not be closed
+             * @throw OpFailureException if the socket could not be closed
              */
             void close();
 
@@ -130,8 +143,7 @@ namespace Tcp {
     };
 
     /**
-     * @brief Represents a connection accepted via ListenSocket::accept. Cannot
-     *        be constructed normally.
+     * @brief Represents a connection accepted via ListenSocket::accept.
      */
     class ConnSocket {
         private:
@@ -156,30 +168,29 @@ namespace Tcp {
              * @brief Whether the socket is currently open and ready for
              *        sending/receiving.
              */
-            bool valid;
-
-            // Constructors
-
-            /**
-             * @brief Create a blank, invalid socket with empty hostname and
-             *        service. No connection is established.
-             */
-            ConnSocket();
+            bool open;
 
             // Friends
 
             /**
-             * @brief ListenSocket has private access to call constructor.
+             * @brief ListenSocket has private access.
              * 
              * @relates ListenSocket
              */
             friend ListenSocket;
         
         public:
-            // Destructors
+            // Constructors and destructors
 
             /**
-             * @brief Destroy this socket. No special behavior.
+             * @brief Create a blank, nonfunctional socket with empty hostname
+             *        and service.
+             */
+            ConnSocket();
+
+            /**
+             * @brief Destroy this socket. The socket must be closed manually
+             *        prior to destruction!
              */
             ~ConnSocket();
 
@@ -190,11 +201,10 @@ namespace Tcp {
              *        byte is available to read.
              * 
              * @return the byte that was read
-             * @throw PrematureCloseException if the connection is closed
-             *        before a byte could be read TODO
-             * @throw InvalidSocketException if the socket is not open TODO
-             * @throw RecvFailureException if there is some other error reading
-             *        TODO
+             * @throw BadSocketException if the socket is not open 
+             * @throw ClientDisconnectException if the client disconnects
+             *        before a byte could be read
+             * @throw OpFailureException if there is an error reading
              */
             uint8_t recvByte();
 
@@ -205,11 +215,10 @@ namespace Tcp {
              * @param buf the buffer in which to store the bytes. Must have
              *        size at least n
              * @param the number of bytes to read
-             * @throw PrematureCloseException if the connection is closed
-             *        before n bytes could be read TODO
-             * @throw InvalidSocketException if the socket is not open TODO
-             * @throw RecvFailureException if there is some other error reading
-             *        TODO
+             * @throw BacSocketException if the socket is not open
+             * @throw ClientDisconnectException if the connection is closed
+             *        before n bytes could be read
+             * @throw OpFailureException if there is an error reading
              */
             void recvBuf(uint8_t* buf, size_t n);
 
@@ -218,11 +227,8 @@ namespace Tcp {
              *        is sent.
              * 
              * @param b the byte to send
-             * @throw PrematureCloseException if the connection is closed
-             *        before the byte could be written TODO
-             * @throw InvalidSocketException if the socket is not open TODO
-             * @throw SendFailureException if there is some other error writing
-             *        TODO
+             * @throw BadSocketException if the socket is not open
+             * @throw OpFailureException if there is an error sending
              */
             void sendByte(uint8_t b);
 
@@ -233,11 +239,8 @@ namespace Tcp {
              * @param buf the buffer from which to send. Must be of size at
              *        least n
              * @param n the number of bytes to send
-             * @throw PrematureCloseException if the connection is closed
-             *        before n bytes could be written TODO
-             * @throw InvalidSocketException if the socket is not open TODO
-             * @throw SendFailureException if there is some other error writing
-             *        TODO
+             * @throw BadSocketException if the socket is not open
+             * @throw OpFailureException if there is an error sending
              */
             void sendBuf(uint8_t* buf, size_t n);
 
@@ -245,7 +248,7 @@ namespace Tcp {
              * @brief Close this socket. Any unread data from the client is
              *        lost.
              * 
-             * @throw CloseFailureException if the socket could not be closed
+             * @throw OpFailureException if the socket could not be closed
              */
             void close();
 
@@ -279,7 +282,43 @@ namespace Tcp {
              * @return true if open
              * @return false otherwise
              */
-            bool isValid();
+            bool isOpen();
+    };
+
+    // Exceptions used by this module
+
+    /**
+     * @brief Indicates that a requested socket operation (e.g. send, receive,
+     *        create, close) was unsuccessful.
+     */
+    class OpFailureException : public std::exception {
+        public:
+            virtual const char* what() const noexcept {
+                return "Socket operation failure";
+            }
+    };
+
+    /**
+     * @brief Indicates that a socket does not meet the conditions required to
+     *        perform an operation (e.g. trying to accept on a ListenSocket
+     *        that is not listening).
+     */
+    class BadSocketException : public std::exception {
+        public:
+            virtual const char* what() const noexcept {
+                return "Socket not ready for requested operation";
+            }
+    };
+
+    /**
+     * @brief Indicates that the client has disconnected before an operation
+     *        could complete.
+     */
+    class ClientDisconnectException : public std::exception {
+        public:
+            virtual const char* what() const noexcept {
+                return "Client has disconnected";
+            }
     };
 }
 

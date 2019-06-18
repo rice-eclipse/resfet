@@ -22,27 +22,32 @@
 
 // ListenSocket methods
 
-Tcp::ListenSocket::ListenSocket(int port) {
-    // Set members
-    this->port = port;
+Tcp::ListenSocket::ListenSocket() {
+    this->fd = -1;
+    this->port = 0;
     this->listening = false;
+}
+
+Tcp::ListenSocket::ListenSocket(int port) : ListenSocket() {
+    // Member defaults set by default ctor
+    this->port = port;
 
     // Open a blank TCP socket
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockFd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (fd < 0) {
+    if (sockFd < 0) {
         // Socket could not be created
-        // TODO: throw SocketCreateFailureException
+        throw OpFailureException();
     }
 
-    this->fd = fd;
+    this->fd = sockFd;
 
     // Configure the socket to allow other open connections on this device
     // (allow the local address to be reused)
     int optTrue = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*) &optTrue, sizeof(int)) < 0) {
         // Socket could not be configured as needed
-        // TODO: throw SocketCreateFailureException
+        throw OpFailureException();
     }
 
     // Set up a sockaddr_in struct to carry the necessary info for bind()
@@ -53,21 +58,19 @@ Tcp::ListenSocket::ListenSocket(int port) {
     serverAddr.sin_addr.s_addr = INADDR_ANY; // local IP address
 
     // Bind the socket to the specified port
-    if (bind(fd, (sockaddr*) &serverAddr, sizeof(sockaddr_in)) < 0) {
-        // Failed to bind the socket
-        // TODO: throw SocketCreateFailureException
+    if (bind(sockFd, (sockaddr*) &serverAddr, sizeof(sockaddr_in)) < 0) {
+        // Failed to bind the socket, can't listen
+        throw OpFailureException();
     }
 }
 
-Tcp::ListenSocket::~ListenSocket() {
-    // Close the socket before destruction to avoid file leaks
-    close();
-}
+Tcp::ListenSocket::~ListenSocket() { /* default destructor */ }
 
 void Tcp::ListenSocket::listen() {
     // Attempt a listen
     if (::listen(fd, TCP_BACKLOG) < 0) {
-        // TODO: throw ListenFailureException
+        // Listen failure
+        throw OpFailureException();
     }
 
     listening = true;
@@ -75,7 +78,8 @@ void Tcp::ListenSocket::listen() {
 
 Tcp::ConnSocket Tcp::ListenSocket::accept() {
     if (!listening) {
-        // TODO: throw?
+        // Cannot accept on a socket that is not listening!
+        throw BadSocketException();
     }
     
     sockaddr_in clientAddr;
@@ -85,12 +89,13 @@ Tcp::ConnSocket Tcp::ListenSocket::accept() {
     int connFd = ::accept(fd, (sockaddr*) &clientAddr, &clientSize);
 
     if (connFd < 0) {
-        // TODO: throw AcceptFailureException
+        // Accept failure (resistance is futile)
+        throw OpFailureException();
     }
 
     Tcp::ConnSocket coSock;
     coSock.fd = connFd;
-    coSock.valid = true;
+    coSock.open = true;
 
     // Retrieve info about the client
     int err = getnameinfo((sockaddr*) &clientAddr, sizeof(sockaddr_in), coSock.clientHost,
@@ -98,7 +103,6 @@ Tcp::ConnSocket Tcp::ListenSocket::accept() {
 
     // In case of error, set both hostname and service to "Unknown"
     if (err != 0) {
-        // TODO: throw?
         std::strcpy(coSock.clientHost, "Unknown");
         std::strcpy(coSock.clientServ, "Unknown");
     }
@@ -109,9 +113,14 @@ Tcp::ConnSocket Tcp::ListenSocket::accept() {
 void Tcp::ListenSocket::close() {
     listening = false;
 
-    if (::close(fd) < 0) {
-        // TODO: throw CloseFailureException
+    if (fd > -1) {
+        if (::close(fd) < 0) {
+            // Close failure
+            throw OpFailureException();
+        }
     }
+
+    fd = -1; // indicate the FD has been closed
 }
 
 int Tcp::ListenSocket::getPort() {
@@ -129,7 +138,8 @@ bool Tcp::ListenSocket::isListening() {
 // ConnSocket methods
 
 Tcp::ConnSocket::ConnSocket() {
-    valid = false;
+    fd = -1;
+    open = false;
 
     // Set hostname and service to empty strings
     std::strcpy(clientHost, "");
@@ -139,31 +149,17 @@ Tcp::ConnSocket::ConnSocket() {
 Tcp::ConnSocket::~ConnSocket() { /* default destructor */ }
 
 uint8_t Tcp::ConnSocket::recvByte() {
-    // Ensure the socket is ready for a receive
-    if (!valid) {
-        // TODO: throw InvalidSocketException
-    }
-
-    uint8_t received;
-
-    // Try to read a byte into received
-    ssize_t numRead = ::recv(fd, (void*) &received, sizeof(uint8_t), 0);
-    
-    if (numRead == 0) {
-        // Client has closed the connection
-        // TODO: throw PrematureCloseException
-    } else if (numRead == -1) {
-        // Misc error with ::recv()
-        // TODO: throw RecvFailureException
-    }
-
-    return received;
+    // Delegate to recvBuf()
+    uint8_t b; // the "buffer"
+    recvBuf(&b, 1);
+    return b;
 }
 
 void Tcp::ConnSocket::recvBuf(uint8_t* buf, size_t n) {
     // Ensure the socket is ready for a receive
-    if (!valid) {
-        // TODO: throw InvalidSocketException
+    if (!open) {
+        // Cannot receive on a socket that is not open!
+        throw BadSocketException();
     }
 
     size_t numToRead = n;
@@ -176,10 +172,11 @@ void Tcp::ConnSocket::recvBuf(uint8_t* buf, size_t n) {
         
         if (numRead == 0) {
             // Client has closed the connection
-            // TODO: throw PrematureCloseException
+            open = false;
+            throw ClientDisconnectException();
         } else if (numRead == -1) {
             // Misc error with ::recv()
-            // TODO: throw RecvFailureException
+            throw OpFailureException();
         }
 
         numToRead -= numRead;
@@ -187,16 +184,48 @@ void Tcp::ConnSocket::recvBuf(uint8_t* buf, size_t n) {
     }
 }
 
-void Tcp::ConnSocket::sendByte(uint8_t b) { /* TODO */ }
+void Tcp::ConnSocket::sendByte(uint8_t b) { 
+    // Delegate to sendBuf()
+    sendBuf(&b, 1);
+}
 
-void Tcp::ConnSocket::sendBuf(uint8_t* buf, size_t n) { /* TODO */ }
+void Tcp::ConnSocket::sendBuf(uint8_t* buf, size_t n) {
+    // Ensure the socket is ready for a send
+    if (!open) {
+        // Cannot send on a socket that is not open!
+        throw BadSocketException();
+    }
+
+    size_t numToSend = n;
+    ssize_t numSent;
+    uint8_t* sendPos = buf;
+
+    // Send until all bytes are sent
+    while (numToSend > 0) {
+        numSent = ::send(fd, (void*) sendPos, numToSend, 0);
+
+        if (numSent == -1) {
+            // Misc error with ::send()
+            throw OpFailureException();
+            // TODO: handle client disconnect?
+        }
+
+        numToSend -= numSent;
+        sendPos += numSent;
+    }
+}
 
 void Tcp::ConnSocket::close() {
-    valid = false;
+    open = false;
 
-    if (::close(fd) < 0) {
-        // TODO: throw CloseFailureException
+    if (fd > -1) {
+        if (::close(fd) < 0) {
+            // Close failure
+            throw OpFailureException();
+        }
     }
+
+    fd = -1; // indicate the FD has been closed
 }
 
 int Tcp::ConnSocket::getFd() {
@@ -211,6 +240,6 @@ std::string Tcp::ConnSocket::getClientService() {
     return std::string(clientServ);
 }
 
-bool Tcp::ConnSocket::isValid() {
-    return valid;
+bool Tcp::ConnSocket::isOpen() {
+    return open;
 }
