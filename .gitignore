@@ -4,5 +4,8 @@
 # Contents of output directory
 build/*
 
+# Contents of documentation directory
+doc/*
+
 # OS-related files
 .DS_Store
