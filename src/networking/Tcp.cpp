@@ -93,7 +93,7 @@ Tcp::ConnSocket Tcp::ListenSocket::accept() {
         throw OpFailureException();
     }
 
-    Tcp::ConnSocket coSock;
+    ConnSocket coSock;
     coSock.fd = connFd;
     coSock.open = true;
 
