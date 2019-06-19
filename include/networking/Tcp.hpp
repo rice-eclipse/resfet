@@ -215,7 +215,7 @@ namespace Tcp {
              * @param buf the buffer in which to store the bytes. Must have
              *        size at least n
              * @param n the number of bytes to read
-             * @throw BacSocketException if the socket is not open
+             * @throw BadSocketException if the socket is not open
              * @throw ClientDisconnectException if the connection is closed
              *        before n bytes could be read
              * @throw OpFailureException if there is an error reading
