@@ -1,0 +1,16 @@
+dist: xenial
+language: cpp
+compiler: gcc
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - cmake
+
+script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
