@@ -41,18 +41,6 @@ int Logger::create_log_file() {
 		return -1;
 	}
 
-	if (dup2(STDOUT_FILENO, file_fd) == -1) {
-		dprintf(STDERR_FILENO, "stdout dup2 unsuccessful: %s\n",
-				strerror(errno));
-		return -1;
-	}
-
-	if (dup2(STDERR_FILENO, file_fd) == -1) {
-		dprintf(STDERR_FILENO, "stderr dup2 unsuccessful: %s\n",
-				strerror(errno));
-		return -1;
-	}
-
 	return 0;
 }
 
@@ -67,6 +55,8 @@ void Logger::log(const char *msg, LogLevel level) {
 
 	// TODO time
 	dprintf(file_fd, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", msg);
+
+	dprintf(STDOUT_FILENO, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", msg);
 }
 
 void Logger::error(const char *msg) {
