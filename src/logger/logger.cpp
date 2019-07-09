@@ -31,8 +31,11 @@ Logger::Logger(const char *name, const char *filename, LogLevel log_level)
 int Logger::create_log_file() {	
 	struct stat st;
 
-	if (stat("logs", &st) == -1)
-		mkdir("logs", 0700);
+	if (stat("logs", &st) == -1) {
+		if (mkdir("logs", 0700) == -1)
+			dprintf(STDERR_FILENO, "Create logs directory unsuccessful: %s\n",
+						strerror(errno));
+	}
 	
 
 	if ((file_fd = open(filename, O_CREAT | O_RDWR | O_TRUNC)) == -1) {
@@ -44,7 +47,7 @@ int Logger::create_log_file() {
 	return 0;
 }
 
-void Logger::log(const char *msg, LogLevel level) {
+void Logger::log(const char *format, LogLevel level, va_list argList) {
 	if (file_fd == -1) {
 		dprintf(STDERR_FILENO, "Attempting to log when log file is null\n");
 		return;
@@ -53,20 +56,32 @@ void Logger::log(const char *msg, LogLevel level) {
 	if (log_level < level)
 		return;
 
+	vsnprintf(buf, MAX_BUF_LEN, format, argList);
+
+	dprintf(file_fd, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", buf);
+
 	// TODO time
-	dprintf(file_fd, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", msg);
 
-	dprintf(STDOUT_FILENO, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", msg);
+	dprintf(STDOUT_FILENO, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", buf);
 }
 
-void Logger::error(const char *msg) {
-	log(msg, LogLevel::ERROR);
+void Logger::error(const char *format, ...) {
+	va_list argList;
+	va_start(argList, format);
+	log(format, LogLevel::ERROR, argList);
+	va_end(argList);
 }
 
-void Logger::info(const char *msg) {
-	log(msg, LogLevel::INFO);
+void Logger::info(const char *format, ...) {
+	va_list argList;
+	va_start(argList, format);
+	log(format, LogLevel::INFO, argList);
+	va_end(argList);
 }
 
-void Logger::debug(const char *msg) {
-	log(msg, LogLevel::DEBUG);
+void Logger::debug(const char *format, ...) {
+	va_list argList;
+	va_start(argList, format);
+	log(format, LogLevel::DEBUG, argList);
+	va_end(argList);
 }
