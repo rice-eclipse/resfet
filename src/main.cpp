@@ -7,9 +7,7 @@
 
 // Simple recv test for TCP interface
 int main() {
-    char fname[MAX_BUF_LEN];
-    strcpy(fname, "NetworkLog");
-    Logger network_logger ("Networking", fname, LogLevel::DEBUG);
+    Logger network_logger ("Networking", "NetworkLog", LogLevel::DEBUG);
 
     // Try to open a socket for listening
     Tcp::ListenSocket liSock;
