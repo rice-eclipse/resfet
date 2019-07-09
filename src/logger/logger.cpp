@@ -20,19 +20,23 @@
 #include "logger/logger.hpp"
 #include "time/time.hpp"
 
-Logger::Logger(const char *name, char *filename, LogLevel log_level)
+Logger::Logger(const char *name, const char *fname, LogLevel log_level)
 	: name(name)
-	, filename(filename)
 	, log_level(log_level)
 	, file_fd(-1)
   	{
 		char time_buf[MAX_TIME_BUF_LEN];
 
-		/* Start the timer and append the time to the filename */
+		/* Start the timer and create the filename */ 
 		set_start_time();
 		get_formatted_time(time_buf);
-		strcat(this->filename, "_");
-		strcat(this->filename, time_buf);
+
+		strcpy(filename, "logs/");
+		strcat(filename, fname);
+		strcat(filename, "_");
+		strcat(filename, time_buf);
+
+		printf("Filename: %s\n", filename);
 		create_log_file();
 		// TODO write any initial info (e.g. config files) to the log file
 	}
@@ -53,7 +57,7 @@ int Logger::create_log_file() {
 	 * This assumes there are no shared filenames since they should
 	 * contain the time of creation.
 	 */
-	if ((file_fd = open(filename, O_CREAT | O_RDWR | O_TRUNC), 0700) == -1) {
+	if ((file_fd = open(filename, O_CREAT | O_RDWR | O_TRUNC, S_IRWXU)) == -1) {
 		dprintf(STDERR_FILENO, "Create log file unsuccessful: %s\n",
 				strerror(errno));
 		return -1;
@@ -76,8 +80,6 @@ void Logger::log(const char *format, LogLevel level, va_list argList) {
 	/* Save the formatted message in the internal buffer */
 	vsnprintf(buf, MAX_BUF_LEN, format, argList);
 
-	// TODO time
-	
 	/* Write the formatted message, and other information, to the log file */
 	dprintf(file_fd, "[%s][%s][%lu] %s", name, LogLevelStrings[level], get_elapsed_time_ms(), buf);
 

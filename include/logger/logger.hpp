@@ -55,7 +55,7 @@ class Logger {
 		const char *name;
 
 		/* @brief The filename of the log file to write to */
-		char *filename;
+		char filename[MAX_BUF_LEN];
 
 		/* @brief The file descriptor to write to */
 		int file_fd;
@@ -79,7 +79,7 @@ class Logger {
 		/*
 		 * @brief Constructor for the logger.
 		 */
-		Logger(const char *name, char *filename, LogLevel log_level);
+		Logger(const char *name, const char *filename, LogLevel log_level);
 
 		/*
 		 * @brief Logs a message if the logger's log level is at least as high
