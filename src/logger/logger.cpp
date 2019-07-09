@@ -26,11 +26,14 @@ Logger::Logger(const char *name, const char *filename, LogLevel log_level)
 	, file_fd(-1)
   	{
 		create_log_file();
+		// TODO write any initial info (e.g. config files) to the log file
+		// TODO append the time string to the filename
 	}
 
 int Logger::create_log_file() {	
 	struct stat st;
 
+	/* Create the logs directory if it does not exist */
 	if (stat("logs", &st) == -1) {
 		if (mkdir("logs", 0700) == -1)
 			dprintf(STDERR_FILENO, "Create logs directory unsuccessful: %s\n",
@@ -38,6 +41,11 @@ int Logger::create_log_file() {
 	}
 	
 
+	/*
+	 * Open the file for writing (will delete previous contents).
+	 * This assumes there are no shared filenames since they should
+	 * contain the time of creation.
+	 */
 	if ((file_fd = open(filename, O_CREAT | O_RDWR | O_TRUNC)) == -1) {
 		dprintf(STDERR_FILENO, "Create log file unsuccessful: %s\n",
 				strerror(errno));
@@ -48,24 +56,30 @@ int Logger::create_log_file() {
 }
 
 void Logger::log(const char *format, LogLevel level, va_list argList) {
+	/* Check the log file exists */
 	if (file_fd == -1) {
 		dprintf(STDERR_FILENO, "Attempting to log when log file is null\n");
 		return;
 	}
 
+	/* Only log messages if the priority is high enough */
 	if (log_level < level)
 		return;
 
+	/* Save the formatted message in the internal buffer */
 	vsnprintf(buf, MAX_BUF_LEN, format, argList);
 
-	dprintf(file_fd, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", buf);
-
 	// TODO time
+	
+	/* Write the formatted message, and other information, to the log file */
+	dprintf(file_fd, "[%s][%s][%s] %s", name, LogLevelStrings[level], "time", buf);
 
-	dprintf(STDOUT_FILENO, "[%s][%s][%s] %s", name, LogLevelStrings[(int)level], "time", buf);
+	/* Write to stdout */
+	dprintf(STDOUT_FILENO, "[%s][%s][%s] %s", name, LogLevelStrings[level], "time", buf);
 }
 
 void Logger::error(const char *format, ...) {
+	/* Pass in the format string and variable args */
 	va_list argList;
 	va_start(argList, format);
 	log(format, LogLevel::ERROR, argList);
@@ -73,6 +87,7 @@ void Logger::error(const char *format, ...) {
 }
 
 void Logger::info(const char *format, ...) {
+	/* Pass in the format string and variable args */
 	va_list argList;
 	va_start(argList, format);
 	log(format, LogLevel::INFO, argList);
@@ -80,6 +95,7 @@ void Logger::info(const char *format, ...) {
 }
 
 void Logger::debug(const char *format, ...) {
+	/* Pass in the format string and variable args */
 	va_list argList;
 	va_start(argList, format);
 	log(format, LogLevel::DEBUG, argList);
