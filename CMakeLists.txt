@@ -7,9 +7,10 @@ include_directories(include)
 
 # Add the directories for libraries
 add_subdirectory(src/networking)
+add_subdirectory(src/logger)
 
 # Build the main executable
 add_executable(resfet src/main.cpp)
 
 # Link the libraries
-target_link_libraries(resfet networking)
+target_link_libraries(resfet networking logger)
