@@ -25,7 +25,7 @@
  * In order of least to most output:
  * SILENT: No messages.
  * ERROR: Errors that prevent continued operation.
- * INFO: Errors and important events
+ * INFO: Errors and important events.
  * DEBUG: INFO plus additional debug messages.
  */
 enum LogLevel {
@@ -35,10 +35,12 @@ enum LogLevel {
 	DEBUG = 3
 };
 
-const char LogLevelStrings[][7] = {"SILENT",
-			   "ERROR",
-			   "INFO",
-			   "DEBUG"};
+const char LogLevelStrings[][7] ={
+	"SILENT",
+	"ERROR",
+	"INFO",
+	"DEBUG"
+};
 
 /*
  * TODO each instance has only one filename and file descriptor.
@@ -53,10 +55,10 @@ class Logger {
 		/* @brief The name of this logger */
 		const char *name;
 
-		/* @brief The filename of the log file to write to. */
+		/* @brief The filename of the log file to write to */
 		const char *filename;
 
-		/* @brief The file descriptor to write to. */
+		/* @brief The file descriptor to write to */
 		int file_fd;
 
 		/* @brief The log level of this logger */
@@ -67,8 +69,8 @@ class Logger {
 
 		/*
 		 * @brief Attempts to create a log file and any intermediate directories.
-		 * 		  The default directory is logs/filename, where the logs/ directory
-		 * 		  is relative to the current working directory.
+		 * 	  The default directory is logs/filename, where the logs/ directory
+		 * 	  is relative to the current working directory.
 		 * @return 1 on success and 0 on failure.
 		 */
 		int create_log_file();
@@ -82,7 +84,7 @@ class Logger {
 
 		/*
 		 * @brief Logs a message if the logger's log level is at least as high
-		 * 		  as the provided log level. 
+		 * 	  as the provided log level. 
 		 * @msg	  The message to log.
 		 * @param level The log level of the message.
 		 */
