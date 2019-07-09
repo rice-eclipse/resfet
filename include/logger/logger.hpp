@@ -12,11 +12,10 @@
 #ifndef __LOGGER_HPP
 #define __LOGGER_HPP
 
-// Maximum length of a log message
-#define MAX_LOG_LEN 128
+// Maximum length of a formatted log message
+#define MAX_BUF_LEN 256
 
-// Maximum length of the filename of the log
-#define MAX_FILENAME_LEN 64
+#include <stdarg.h>
 
 /*
  * The log levels that determine what messages are send to
@@ -63,13 +62,8 @@ class Logger {
 		/* @brief The log level of this logger */
 		LogLevel log_level;
 
-
-	public:
-
-		/*
-		 * @brief Constructor for the logger.
-		 */
-		Logger(const char *name, const char *filename, LogLevel log_level);
+		/* @brief A temporary buffer that is used to format user input */
+		char buf[MAX_BUF_LEN];
 
 		/*
 		 * @brief Attempts to create a log file and any intermediate directories.
@@ -79,31 +73,38 @@ class Logger {
 		 */
 		int create_log_file();
 
+	public:
+
+		/*
+		 * @brief Constructor for the logger.
+		 */
+		Logger(const char *name, const char *filename, LogLevel log_level);
+
 		/*
 		 * @brief Logs a message if the logger's log level is at least as high
 		 * 		  as the provided log level. 
 		 * @msg	  The message to log.
 		 * @param level The log level of the message.
 		 */
-		void log(const char *msg, LogLevel level);
+		void log(const char *format, LogLevel level, va_list argList);
 
 		/*
 		 * @brief Logs an ERROR level message.
 		 * @msg	  The message to log.
 		 */
-		void error(const char *msg);
+		void error(const char *format, ...);
 
 		/*
 		 * @brief Logs an INFO level message.
 		 * @msg	  The message to log.
 		 */
-		void info(const char *msg);
+		void info(const char *format, ...);
 
 		/*
 		 * @brief Logs a DEBUG level message.
 		 * @msg	  The message to log.
 		 */
-		void debug(const char *msg);
+		void debug(const char *format, ...);
 };
 
 #endif

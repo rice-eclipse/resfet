@@ -30,21 +30,16 @@ int main() {
             return -1;
         }
 		network_logger.info("Connected to client!\n");
-
-		send_string = "Hostname: " + coSock.getClientHostname() + "\n";
-		network_logger.info(send_string.c_str());
-
-		send_string = "Service: " + coSock.getClientService() + "\n";
-		network_logger.info(send_string.c_str());
+		network_logger.info("Hostname: %s\n", coSock.getClientHostname().c_str());
+		network_logger.info("Service: %s\n", coSock.getClientService().c_str());
         
         // Read individual bytes until '0', then quit and wait for another request
         uint8_t read;
         try {
             while ((read = coSock.recvByte()) != '0') {
-		send_string = "Read byte: " + std::string((char *)&read) + "\n";
-		network_logger.info(send_string.c_str());
+		network_logger.info("Read byte: %c\n", read);
             }
-		send_string = "Read 0: " + std::string((char *)&read) + "\n";
+		network_logger.info("Read 0: %c\n", read);
         } catch (Tcp::ClientDisconnectException&) {
 		network_logger.info("Client disconnected prematurely, waiting for new connection...\n");
         } catch (Tcp::OpFailureException&) {
