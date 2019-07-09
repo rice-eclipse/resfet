@@ -1,14 +1,15 @@
 #include <cstdint>
 #include <iostream>
+#include <string.h>
 
 #include "networking/Tcp.hpp"
 #include "logger/logger.hpp"
 
 // Simple recv test for TCP interface
 int main() {
-
-    std::string send_string;
-    Logger network_logger ("Networking", "NetworkLog", LogLevel::DEBUG);
+    char fname[MAX_BUF_LEN];
+    strcpy(fname, "NetworkLog");
+    Logger network_logger ("Networking", fname, LogLevel::DEBUG);
 
     // Try to open a socket for listening
     Tcp::ListenSocket liSock;
