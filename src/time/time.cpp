@@ -1,5 +1,5 @@
 /**
- * @file time.c
+ * @file time.cpp
  * @author Tommy Yuan (ty19@rice.edu)
  * @brief A set of functions for determining and formatting timestamps.
  * @version 0.1
