@@ -16,10 +16,10 @@
 
 #include <stdarg.h>
 
-/*
- * The log levels that determine what messages are send to
- * stdout. TODO Should we use the same logger class to log
- * data? Data should be logged at all log levels.
+/**
+ * @brief The log levels that determine what messages are send to
+ * 		  stdout. TODO Should we use the same logger class to log
+ * 		  data? Data should be logged at all log levels.
  *
  * In order of least to most output:
  * SILENT: No messages.
@@ -41,35 +41,46 @@ const char LogLevelStrings[][7] ={
 	"DEBUG"
 };
 
-/*
+/**
+ * @brief A logger class that handles different log levels and logging 
+ * 		  options.
+ * 
  * TODO each instance has only one filename and file descriptor.
  * If we want to use fewer loggers we can provide the file in the
  * function calls instead of the constructor.
- *
- * A logger class that handles different log levels and logging 
- * options.
  */
 class Logger {
 	private:
-		/* @brief The name of this logger */
+		/**
+		 * @brief The name of this logger
+		 */
 		const char *name;
 
-		/* @brief The filename of the log file to write to */
+		/**
+		 * @brief The filename of the log file to write to
+		 */
 		char filename[MAX_BUF_LEN];
 
-		/* @brief The file descriptor to write to */
+		/** 
+		 * @brief The file descriptor to write to
+		 */
 		int file_fd;
 
-		/* @brief The log level of this logger */
+		/**
+		 * @brief The log level of this logger
+		 */
 		LogLevel log_level;
 
-		/* @brief A temporary buffer that is used to format user input */
+		/**
+		 * @brief A temporary buffer that is used to format user input
+		 */
 		char buf[MAX_BUF_LEN];
 
 		/*
 		 * @brief Attempts to create a log file and any intermediate directories.
-		 * 	  The default directory is logs/filename, where the logs/ directory
-		 * 	  is relative to the current working directory.
+		 * 	  	  The default directory is logs/filename, where the logs/ directory
+		 * 	  	  is relative to the current working directory.
+		 * 
 		 * @return 1 on success and 0 on failure.
 		 */
 		int create_log_file();
@@ -83,7 +94,7 @@ class Logger {
 
 		/*
 		 * @brief Logs a message if the logger's log level is at least as high
-		 * 	  as the provided log level. 
+		 * 	  	  as the provided log level. 
 		 * @msg	  The message to log.
 		 * @param level The log level of the message.
 		 */
