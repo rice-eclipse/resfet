@@ -1,4 +1,6 @@
 # RESFET: Rice Eclipse Software for Engine Testing
+[![Build Status](https://travis-ci.org/rice-eclipse/resfet.svg?branch=master)](https://travis-ci.org/rice-eclipse/resfet)
+
 RESFET is a complete remodel of the old
 [mk1-1-engine-controller](https://www.github.com/rice-eclipse/mk1-1-engine-controller)
 code. It fulfills the same purpose: running persistently on the engine control
