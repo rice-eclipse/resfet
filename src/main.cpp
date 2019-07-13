@@ -1,17 +1,21 @@
 #include <cstdint>
 #include <iostream>
+#include <string.h>
 
 #include "networking/Tcp.hpp"
+#include "logger/logger.hpp"
 
 // Simple recv test for TCP interface
 int main() {
+    Logger network_logger ("Networking", "NetworkLog", LogLevel::DEBUG);
+
     // Try to open a socket for listening
     Tcp::ListenSocket liSock;
     try {
         liSock = Tcp::ListenSocket(1234);
         liSock.listen();
     } catch (Tcp::OpFailureException&) {
-        std::cerr << "Could not create/open listening socket" << std::endl;
+		network_logger.error("Could not create/open listening socket\n");	
         return -1;
     }
 
@@ -21,25 +25,24 @@ int main() {
         try {
             coSock = liSock.accept();
         } catch (Tcp::OpFailureException&) {
-            std::cerr << "Unable to accept a connection" << std::endl;
+			network_logger.error("Unable to accept a connection\n");	
             return -1;
         }
-        std::cout << "Connected to client!\n"
-                  << "Hostname: " << coSock.getClientHostname() << "\n"
-                  << "Service: " << coSock.getClientService() << std::endl;
+		network_logger.info("Connected to client!\n");
+		network_logger.info("Hostname: %s\n", coSock.getClientHostname().c_str());
+		network_logger.info("Service: %s\n", coSock.getClientService().c_str());
         
         // Read individual bytes until '0', then quit and wait for another request
         uint8_t read;
         try {
             while ((read = coSock.recvByte()) != '0') {
-                std::cout << "Read byte: " << read << std::endl;
+		network_logger.info("Read byte: %c\n", read);
             }
-            std::cout << "Read 0: " << read << std::endl;
+		network_logger.info("Read 0: %c\n", read);
         } catch (Tcp::ClientDisconnectException&) {
-            std::cerr << "Client disconnected prematurely, waiting for new connection..."
-                      << std::endl;
+		network_logger.info("Client disconnected prematurely, waiting for new connection...\n");
         } catch (Tcp::OpFailureException&) {
-            std::cerr << "Problem reading, closing connection" << std::endl;
+		network_logger.info("Problem reading, closing connection\n");
         }
 
         coSock.close();
