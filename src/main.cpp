@@ -12,14 +12,19 @@ int main() {
     Logger status_logger ("Status", "StatusLog", LogLevel::DEBUG);
     uint16_t port;
 
-    struct config_pair configs[1];
+    struct config_pair configs[2];
+    char *engine = new char[16];
 
-    read_config_file("config.ini", configs, 1);
-    if (set_config_var(&port, "port", configs, 1) != 0) {
+    read_config_file("config.ini", configs, 2);
+    if (set_config_var(&port, "port", configs, 2) != 0) {
 	   status_logger.error("Error retrieving port from config\n"); 
+    }
+    if (set_config_var(engine, "engine", configs, 2) != 0) {
+	   status_logger.error("Error retrieving engine from config\n"); 
     }
 
     status_logger.info("Port from config is %d\n", port);
+    status_logger.info("Engine from config is %s\n", engine);
 
     // Try to open a socket for listening
     Tcp::ListenSocket liSock;

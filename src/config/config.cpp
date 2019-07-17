@@ -27,10 +27,10 @@ CONFIG_TYPE get_type(const char *type_str) {
 uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_t size) {
 	FILE *file;
 	uint8_t match, index = 0;
-	// char line[MAX_LINE_LENGTH];
+	/* TODO check memory leaks with these allocations. Not sure how it works in C++ */
 	char *line = new char[MAX_LINE_LENGTH];
-	char *key = new char[MAX_CONFIG_LENGTH], *value = new char[MAX_CONFIG_LENGTH];
 	char *type_str = new char[MAX_CONFIG_LENGTH];
+	char *key, *value;
 	CONFIG_TYPE type;
 	size_t len;
 	uint8_t num;
@@ -43,14 +43,17 @@ uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_
 	}
 
 	while ((getline(&line, &len, file)) != -1) {
-		printf("line: %s", line);
-		if (line[0] == '#' || line[0] == '\n')
+		/* Skip commented and empty lines */
+		if (line[0] == '#' || line[0] == '\r' || line[0] == '\n')
 			continue;
-		else if ((match = sscanf(line, "[%[^]]]", type_str)) == 1) {
-			printf("type_str: %s\n", type_str);
+		
+		key = new char[MAX_CONFIG_LENGTH];
+		value = new char[MAX_CONFIG_LENGTH];
+		/* Attempt to match headers (that define types) */
+		if ((match = sscanf(line, "[%[^]]]", type_str)) == 1) {
 			type = get_type(type_str);
+		/* Attempt to match key-value pairs */
 		} else if ((match = sscanf(line, "%[^=]=%s", key, value)) == 2) {
-			printf("key: %s, value: %s\n", key, value);
 			array[index++] = config_pair(key, value, type);
 		} else {
 			dprintf(STDERR_FILENO, "Error reading config line: %s",
@@ -66,14 +69,16 @@ uint8_t set_config_var(void *var, const char *name, struct config_pair *array, u
 	uint8_t index = 0;
 	struct config_pair elem;
 
+	/*
+	 * Loop through the array and look for a match on name. Inefficient but
+	 * it should be fine since there should not be that many configs.
+	 */
 	while(index < size) {
 		elem = array[index++];
-		dprintf(STDOUT_FILENO, "%s %s\n", elem.key, name);
 		if (strcmp(elem.key, name) == 0) {
 			if (elem.type == CONFIG_TYPE::CSTRING)
 				strncpy((char *)var, elem.cstring, MAX_CONFIG_LENGTH);
 			else if (elem.type == CONFIG_TYPE::NUMBER) {
-				printf("Number: %d\n", elem.number);
 				*(uint16_t *)var = elem.number;
 			}
 			return 0;

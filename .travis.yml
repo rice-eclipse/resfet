@@ -10,5 +10,4 @@ addons:
             - cmake
 
 script:
-    - ./install_dependencies.sh
     - ./autobuild.sh
