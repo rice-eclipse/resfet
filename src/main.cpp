@@ -4,15 +4,27 @@
 
 #include "networking/Tcp.hpp"
 #include "logger/logger.hpp"
+#include "config/config.hpp"
 
 // Simple recv test for TCP interface
 int main() {
     Logger network_logger ("Networking", "NetworkLog", LogLevel::DEBUG);
+    Logger status_logger ("Status", "StatusLog", LogLevel::DEBUG);
+    uint16_t port;
+
+    struct config_pair configs[1];
+
+    read_config_file("config.ini", configs, 1);
+    if (set_config_var(&port, "port", configs, 1) != 0) {
+	   status_logger.error("Error retrieving port from config\n"); 
+    }
+
+    status_logger.info("Port from config is %d\n", port);
 
     // Try to open a socket for listening
     Tcp::ListenSocket liSock;
     try {
-        liSock = Tcp::ListenSocket(1234);
+        liSock = Tcp::ListenSocket(port);
         liSock.listen();
     } catch (Tcp::OpFailureException&) {
 		network_logger.error("Could not create/open listening socket\n");	

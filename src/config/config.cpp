@@ -33,6 +33,7 @@ uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_
 	char *type_str = new char[MAX_CONFIG_LENGTH];
 	CONFIG_TYPE type;
 	size_t len;
+	uint8_t num;
 
 
 	if ((file = fopen(filename, "r")) == NULL) {
@@ -42,17 +43,22 @@ uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_
 	}
 
 	while ((getline(&line, &len, file)) != -1) {
+		printf("line: %s", line);
 		if (line[0] == '#' || line[0] == '\n')
 			continue;
-		else if ((match = sscanf(line, "[%s]\n", type_str)) != 0) {
+		else if ((match = sscanf(line, "[%[^]]]", type_str)) == 1) {
+			printf("type_str: %s\n", type_str);
 			type = get_type(type_str);
-		} else if ((match = sscanf("%s=%s\n", key, value)) != 0) {
+		} else if ((match = sscanf(line, "%[^=]=%s", key, value)) == 2) {
+			printf("key: %s, value: %s\n", key, value);
 			array[index++] = config_pair(key, value, type);
 		} else {
-			dprintf(STDERR_FILENO, "Error reading config line: %s\n",
+			dprintf(STDERR_FILENO, "Error reading config line: %s",
 					line);
 		}
 	}
+
+	return 0;
 
 }
 
@@ -62,11 +68,14 @@ uint8_t set_config_var(void *var, const char *name, struct config_pair *array, u
 
 	while(index < size) {
 		elem = array[index++];
+		dprintf(STDOUT_FILENO, "%s %s\n", elem.key, name);
 		if (strcmp(elem.key, name) == 0) {
 			if (elem.type == CONFIG_TYPE::CSTRING)
 				strncpy((char *)var, elem.cstring, MAX_CONFIG_LENGTH);
-			else if (elem.type == CONFIG_TYPE::NUMBER)
+			else if (elem.type == CONFIG_TYPE::NUMBER) {
+				printf("Number: %d\n", elem.number);
 				*(uint16_t *)var = elem.number;
+			}
 			return 0;
 		}
 	}

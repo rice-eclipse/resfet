@@ -10,7 +10,5 @@ addons:
             - cmake
 
 script:
-    - mkdir build
-    - cd build
-    - cmake ..
-    - make
+    - ./install_dependencies.sh
+    - ./autobuild.sh
