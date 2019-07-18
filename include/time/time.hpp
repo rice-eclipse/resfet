@@ -8,6 +8,9 @@
  * @copyright Copyright (c) 2019
  */
 
+#ifndef __TIME_HPP
+#define __TIME_HPP
+
 #include <stdint.h>
 
 #define MAX_TIME_BUF_LEN 128
@@ -44,3 +47,5 @@ timestamp_t get_elapsed_time_us();
  * @brief Gets the elapsed time in nanoseconds 
  */
 timestamp_t get_elapsed_time_ns();
+
+#endif

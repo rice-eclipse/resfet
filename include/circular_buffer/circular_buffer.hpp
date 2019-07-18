@@ -10,7 +10,7 @@
  */
 
 #ifndef __CIRCULAR_BUFFER_HPP
-#define  __CIRCULAR_BUFFER_HPP
+#define __CIRCULAR_BUFFER_HPP
 
 #include <stdint.h>
 #include "adc/adc.hpp"

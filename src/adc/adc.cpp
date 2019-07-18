@@ -24,6 +24,11 @@ uint16_t adc_reader::read_item(uint8_t sensor_index) {
 		return -1;
 	info = adc_infos[sensor_index];
 
+	/*
+	 * See datasheet for MCP3204 ADC for the SPI interface.
+	 *
+	 * Set on, single mode, channel.
+	 */
 	char channel = 0x01 << 4 | 0x01 << 3 | (char) info.channel;
 	char write_buf[3] = {channel, 0, 0};
 	char read_buf[3] = {0, 0, 0};
@@ -32,9 +37,11 @@ uint16_t adc_reader::read_item(uint8_t sensor_index) {
 
 	bcm2835_spi_transfernb(write_buf, read_buf, 3);
 
+	/* Annoying formatting because the return value is split across two bytes. */
 	read_buf[2] = (uint8_t)(((read_buf[2] >> 2) | ((read_buf[1] & 0x03) << 6)) & 0xFF);
 	read_buf[1] = (uint8_t)((read_buf[1] >> 2) & 0xFF);
 
+	/* Swap endianness of last two bytes and return */
 	return __bswap_16(*(uint16_t *)(read_buf + 1));
 }
 
