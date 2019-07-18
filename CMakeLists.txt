@@ -10,6 +10,7 @@ add_subdirectory(src/networking)
 add_subdirectory(src/logger)
 add_subdirectory(src/time)
 add_subdirectory(src/adc)
+add_subdirectory(src/circular_buffer)
 
 # Build the main executable
 add_executable(resfet src/main.cpp)

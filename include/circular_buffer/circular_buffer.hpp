@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include "adc/adc.hpp"
+#include "time/time.hpp"
 
 /**
  * @brief The header of a packet that describes the type of
@@ -22,7 +23,7 @@
 struct data_header {
 	SENSOR sensor;
 	uint16_t length;
-}
+};
 
 /**
  * @brief A combination of an ADC reading and a timestamp of
@@ -37,7 +38,7 @@ struct data_item {
  * @brief Data rates for each of the sensors. This shouldn't
  * 	  need to change between tests.
  */
-uint8_t SENSOR_FREQS[NUM_SENSORS] = {
+uint16_t SENSOR_FREQS[NUM_SENSORS] = {
 	2000,
 	2000,
 	2000,
@@ -52,11 +53,8 @@ uint8_t SENSOR_FREQS[NUM_SENSORS] = {
 
 class circular_buffer {
 	private:
-		/* @brief The starting time reference for data timestamps */
-		timestamp_t start_time_us;
-
-		/* @brief The maximum number of data_items this buffer can contain */
-		uint16_t size;
+		/* @brief A pointer to the end of this circular buffer */
+		struct data_item *end;
 
 		/* @brief The array of data_items this circular buffer stores */
 		struct data_item *data;
@@ -66,6 +64,9 @@ class circular_buffer {
 
 		/* @brief A pointer to the tail of this circular buffer */
 		struct data_item *tail;
+
+		/* @brief The adc_reader used to acquire ADC readings */
+		adc_reader reader;
 
 	public:
 		/* @brief The sensor type this circular buffer stores data for */
@@ -78,7 +79,7 @@ class circular_buffer {
 		 * @param sensor The sensor associated with this circular buffer.
 		 * @param size The number of data_items this circular buffer should be able to hold.
 		 */
-		circular_buffer (timestamp_t start_time_us, SENSOR sensor, uint16_t size);
+		circular_buffer (SENSOR sensor, uint16_t size);
 
 		/**
 		 * @brief Copies a header and new data into the provided buffer.
@@ -88,12 +89,19 @@ class circular_buffer {
 		 *
 		 * @return The number of bytes written to the buffer.
 		 */
-		uint8_t get_data_to_send(uint8_t  **buf);
+		uint8_t get_data(uint8_t **bufptr, uint16_t size);
 
 		/**
 		 * @brief Adds a new data_item to the internal buffer.
 		 */
 		void add_data_item();
+
+		/**
+		 * @brief Calculates the number of bytes of unsent data.
+		 *
+		 * @return The number of bytes of new data.
+		 */
+		uint16_t get_data_length();
 
 };
 
