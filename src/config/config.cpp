@@ -42,7 +42,7 @@ uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_
 		return 1;
 	}
 
-	while ((getline(&line, &len, file)) != -1) {
+	while (((getline(&line, &len, file)) != -1) && (index < size)) {
 		/* Skip commented and empty lines */
 		if (line[0] == '#' || line[0] == '\r' || line[0] == '\n')
 			continue;
@@ -73,7 +73,7 @@ uint8_t set_config_var(void *var, const char *name, struct config_pair *array, u
 	 * Loop through the array and look for a match on name. Inefficient but
 	 * it should be fine since there should not be that many configs.
 	 */
-	while(index < size) {
+	while (index < size) {
 		elem = array[index++];
 		if (strcmp(elem.key, name) == 0) {
 			if (elem.type == CONFIG_TYPE::CSTRING)

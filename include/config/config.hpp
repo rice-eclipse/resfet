@@ -34,7 +34,7 @@
  * varargs implementation would be better.
  */
 
-/*
+/**
  * @brief Defines the types of configs that we read. Necessary
  * 	  for converting the raw strings into the right values.
  *
@@ -45,7 +45,7 @@ enum class CONFIG_TYPE {
 	NUMBER
 };
 
-/*
+/**
  * @brief The generic key-value pair format that configuration
  * 	  information is stored in.
  *
@@ -74,7 +74,7 @@ struct config_pair {
 		};
 };	
 
-/*
+/**
  * @brief Converts a string that is the name of a config type
  * 	  into the corresponding CONFIG_TYPE.
  *
@@ -82,7 +82,8 @@ struct config_pair {
  */
 CONFIG_TYPE get_type(const char *type_str);
 	
-/* @brief Reads a config file and places the configuration
+/**
+ * @brief Reads a config file and places the configuration
  * 	  information in the provided array.
  *
  * @param filename The name of the config file to read.
@@ -94,7 +95,8 @@ CONFIG_TYPE get_type(const char *type_str);
  */
 uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_t size);
 
-/* @brief Sets a variable based on an array of config_pairs.
+/**
+ * @brief Sets a variable based on an array of config_pairs.
  *
  * @param var	   The variable to be configured.
  * @param name	   The name (key) of the variable to be configured
@@ -105,6 +107,5 @@ uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_
  * @return 1 on error and 0 otherwise.
  */
 uint8_t set_config_var(void *var, const char *name, struct config_pair *array, uint8_t size);
-
 
 #endif
