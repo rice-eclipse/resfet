@@ -34,23 +34,6 @@ struct data_item {
 	timestamp_t timestamp;
 };
 
-/**
- * @brief Data rates for each of the sensors. This shouldn't
- * 	  need to change between tests.
- */
-uint16_t SENSOR_FREQS[NUM_SENSORS] = {
-	2000,
-	2000,
-	2000,
-	2000,
-	500,
-	500,
-	500,
-	20,
-	20,
-	20
-};
-
 class circular_buffer {
 	private:
 		/* @brief A pointer to the end of this circular buffer */
