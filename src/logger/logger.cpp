@@ -110,3 +110,7 @@ void Logger::debug(const char *format, ...) {
 	log(format, LogLevel::DEBUG, argList);
 	va_end(argList);
 }
+
+void Logger::data(char *data) {
+	dprintf(file_fd, "%s", data);
+}

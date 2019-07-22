@@ -11,11 +11,8 @@ int main() {
     Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
 
     /* Set up a thread for reading load cells */
-    printf("Before sensors\n");
     SENSOR sensors[4] = {SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3};
-    printf("Before per_thread\n");
     PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4);
-    printf("Before start\n");
     per_thread.start();
   
     // Set up the socket

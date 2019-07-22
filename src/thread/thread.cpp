@@ -30,11 +30,9 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t n
 		param.loggers = new std::vector<Logger>;
 
 		for (index = 0; index < num_sensors; index++) {
-			printf("index: %d\n", index);
-
-			param.buffers->push_back(circular_buffer(sensors[index], (uint16_t)256));
+			param.buffers->push_back(circular_buffer(sensors[index], 64));
 			param.loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
-					SENSOR_NAMES[sensors[index]], LogLevel::INFO));
+					SENSOR_NAMES[sensors[index]], LogLevel::SILENT));
 		}
 
 		param.num_sensors = num_sensors;
@@ -49,13 +47,13 @@ void *threadFunc(void *param) {
 	uint16_t reading;
 	timestamp_t timestamp;
 	
-	spec.tv_sec = 0;
-	spec.tv_nsec = t_param->sleep_time_ns;
-
 	while(1) {
+		// printf("In while. Wait time: %lu\n", t_param->sleep_time_ns);
+		spec.tv_sec = 0;
 		spec.tv_nsec = t_param->sleep_time_ns;
 		// TODO check this timing is accurate
 		while (nanosleep(&rem, &spec) == -1) {
+			// printf("New wait time: %lu\n", rem.tv_nsec);
 			spec.tv_nsec = rem.tv_nsec;
 		}
 
@@ -63,8 +61,9 @@ void *threadFunc(void *param) {
 		for (it = t_param->buffers->begin(); it != t_param->buffers->end(); ++it) {
 			reading = t_param->reader.count_up();
 			timestamp = get_elapsed_time_us();
+			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
 			it->add_data_item(reading, timestamp);
-			it_log->info("reading: %lu, timestamp: %lu\n", reading, timestamp);
+			// it_log->data(reading, timestamp);
 			it_log++;
 		}
 	}

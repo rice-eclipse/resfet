@@ -19,8 +19,8 @@
 circular_buffer::circular_buffer(SENSOR sensor, uint16_t size)
 	: sensor(sensor)
 	{
-		end = data + size;
 		data = new data_item[size];
+		end = data + size;
 		head = data;
 		tail = data;
 	};
@@ -50,12 +50,12 @@ void circular_buffer::add_data_item(uint16_t reading, timestamp_t timestamp) {
 	struct data_item *next = head + 1;
 
 	/* Check for wrap around */
-	if (next == end)
+	if (next >= end) 
 		next = data;
 
 	/* Check if the buffer is full */
 	/* TODO log this? */
-	if (next == tail)
+	if (next == tail) 
 		return;
 
 	/* Write the new reading into the buffer */
