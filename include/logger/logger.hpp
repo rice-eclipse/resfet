@@ -86,7 +86,6 @@ class Logger {
 		int create_log_file();
 
 	public:
-
 		/*
 		 * @brief Constructor for the logger.
 		 */

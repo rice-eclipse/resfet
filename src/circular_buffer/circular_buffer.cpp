@@ -45,6 +45,7 @@ uint8_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 }
 
 void circular_buffer::add_data_item() {
+	static uint32_t count = 0;
 	struct data_item *next = head + 1;
 
 	/* Check for wrap around */
@@ -56,9 +57,9 @@ void circular_buffer::add_data_item() {
 	if (next == tail)
 		return;
 
-
 	/* Write the new reading into the buffer */
-	head->reading = reader.read_item(sensor);
+	// head->reading = reader.read_item(sensor);
+	head->reading = count++;
 	head->timestamp = get_elapsed_time_us();
 
 	head = next;

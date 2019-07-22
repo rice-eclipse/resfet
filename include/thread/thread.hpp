@@ -12,16 +12,19 @@
 #define __THREAD_HPP
 
 #include <thread>
+#include <vector>
 
 #include "adc/adc.hpp"
 #include "circular_buffer/circular_buffer.hpp"
 #include "logger/logger.hpp"
 
 struct thread_param {
-	uint32_t sleep_time_ns;
+	uint64_t sleep_time_ns;
 	uint8_t num_sensors;
-	circular_buffer **buffers;
-	Logger **loggers;
+	std::vector<Logger> *loggers;
+	std::vector<circular_buffer> *buffers;
+	// circular_buffer **buffers;
+	// Logger **loggers;
 };
 
 void *threadFunc(void *param);
@@ -35,10 +38,12 @@ class PeriodicThread {
 		// SENSOR *sensors;
 
 		/* @brief The list of loggers */
-		Logger *loggers;
+		std::vector<Logger> loggers;
+		// Logger *loggers;
 
 		/* @brief The list of circular buffers to store data in */
-		circular_buffer *buffers;
+		std::vector<circular_buffer> buffers;
+		// circular_buffer *buffers;
 
 		/* @brief The thread that is used to do work */
 		pthread_t thread;
