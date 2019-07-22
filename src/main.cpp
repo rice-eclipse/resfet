@@ -4,6 +4,7 @@
 
 #include "networking/Udp.hpp"
 #include "logger/logger.hpp"
+#include "thread/thread.hpp"
 
 // Simple send test for UDP interface
 int main() {

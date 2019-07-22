@@ -23,7 +23,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t n
 		param.sleep_time_ns = (1.0 / (double)frequency_hz) * 1000000000;
 
 		for (index = 0; index < num_sensors; index++) {
-			buffers[index] = circular_buffer(sensors[index], 256);
+			buffers[index] = circular_buffer(sensors[index], (uint16_t)256);
 			loggers[index] = Logger(SENSOR_NAMES[sensors[index]],
 					SENSOR_NAMES[sensors[index]], LogLevel::SILENT);
 		}

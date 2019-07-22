@@ -14,6 +14,32 @@
 
 #include "adc/adc.hpp"
 
+uint16_t SENSOR_FREQS[NUM_SENSORS] = {
+	2000,
+	2000,
+	2000,
+	2000,
+	500,
+	500,
+	500,
+	20,
+	20,
+	20
+};
+
+char SENSOR_NAMES[NUM_SENSORS][20] = {
+	"LC_MAIN",
+	"LC1",
+	"LC2",
+	"LC3",
+	"PT_COMBUSTION",
+	"PT_INJECTOR",
+	"PT_FEED",
+	"TC1",
+	"TC2",
+	"TC3"
+};
+
 adc_reader::adc_reader() {
 }
 
