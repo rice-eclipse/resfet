@@ -19,8 +19,10 @@
 circular_buffer::circular_buffer(SENSOR sensor, uint16_t size)
 	: sensor(sensor)
 	{
-		reader = adc_reader();	
 		end = data + size;
+		data = new data_item[size];
+		head = data;
+		tail = data;
 	};
 
 uint8_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
@@ -44,8 +46,7 @@ uint8_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 	tail += bytes_to_copy / sizeof(struct data_item);
 }
 
-void circular_buffer::add_data_item() {
-	static uint32_t count = 0;
+void circular_buffer::add_data_item(uint16_t reading, timestamp_t timestamp) {
 	struct data_item *next = head + 1;
 
 	/* Check for wrap around */
@@ -58,9 +59,8 @@ void circular_buffer::add_data_item() {
 		return;
 
 	/* Write the new reading into the buffer */
-	// head->reading = reader.read_item(sensor);
-	head->reading = count++;
-	head->timestamp = get_elapsed_time_us();
+	head->reading = reading;
+	head->timestamp = timestamp;
 
 	head = next;
 }

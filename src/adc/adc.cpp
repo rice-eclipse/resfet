@@ -71,6 +71,11 @@ uint16_t adc_reader::read_item(uint8_t sensor_index) {
 	return __bswap_16(*(uint16_t *)(read_buf + 1));
 }
 
+uint16_t adc_reader::count_up() {
+	static uint16_t num = 0;
+	return num++;
+}
+
 void adc_reader::add_adc_info(uint8_t sensor_index, RPiGPIOPin cs_pin, uint8_t channel) {
 	if (sensor_index < 0 || sensor_index > SENSOR::NUM_SENSORS)
 		return;

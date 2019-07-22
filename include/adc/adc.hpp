@@ -113,6 +113,13 @@ class adc_reader {
 		uint16_t read_item(uint8_t sensor_index);
 
 		/**
+		 * @brief Counts up (used for debugging).
+		 *
+		 * @return An integer that is incremented on each call.
+		 */
+		uint16_t count_up();
+
+		/**
 		 * @brief Registers an adc_info in the internal array.
 		 * 	  Required for initialization before read_item().
 		 *

@@ -15,10 +15,13 @@
 #include "adc/adc.hpp"
 #include "thread/thread.hpp"
 #include "logger/logger.hpp"
+#include "time/time.hpp"
 
 PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors)
 	{
 		int index;
+
+		param.reader = adc_reader();
 
 		/* TODO assume we don't sleep for more than 1s */
 		param.sleep_time_ns = (1.0 / (double)frequency_hz) * 1000000000;
@@ -43,19 +46,25 @@ void *threadFunc(void *param) {
 	uint8_t index;
 	std::vector<circular_buffer>::iterator it;
 	std::vector<Logger>::iterator it_log;
+	uint16_t reading;
+	timestamp_t timestamp;
 	
 	spec.tv_sec = 0;
 	spec.tv_nsec = t_param->sleep_time_ns;
 
 	while(1) {
 		spec.tv_nsec = t_param->sleep_time_ns;
+		// TODO check this timing is accurate
 		while (nanosleep(&rem, &spec) == -1) {
 			spec.tv_nsec = rem.tv_nsec;
 		}
 
 		it_log = t_param->loggers->begin();
 		for (it = t_param->buffers->begin(); it != t_param->buffers->end(); ++it) {
-			it_log->info("%s\n", "abcd");
+			reading = t_param->reader.count_up();
+			timestamp = get_elapsed_time_us();
+			it->add_data_item(reading, timestamp);
+			it_log->info("reading: %lu, timestamp: %lu\n", reading, timestamp);
 			it_log++;
 		}
 	}

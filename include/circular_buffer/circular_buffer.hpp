@@ -13,8 +13,8 @@
 #define __CIRCULAR_BUFFER_HPP
 
 #include <stdint.h>
-#include "adc/adc.hpp"
 #include "time/time.hpp"
+#include "adc/adc.hpp"
 
 /**
  * @brief The header of a packet that describes the type of
@@ -48,9 +48,6 @@ class circular_buffer {
 		/* @brief A pointer to the tail of this circular buffer */
 		struct data_item *tail;
 
-		/* @brief The adc_reader used to acquire ADC readings */
-		adc_reader reader;
-
 	public:
 		/* @brief The sensor type this circular buffer stores data for */
 		SENSOR sensor;
@@ -76,8 +73,11 @@ class circular_buffer {
 
 		/**
 		 * @brief Adds a new data_item to the internal buffer.
+		 *
+		 * @param reading The reading of the new data_item.
+		 * @param timestamp The timestamp of the new data_item.
 		 */
-		void add_data_item();
+		void add_data_item(uint16_t reading, timestamp_t timestamp);
 
 		/**
 		 * @brief Calculates the number of bytes of unsent data.

@@ -25,6 +25,7 @@ struct thread_param {
 	std::vector<circular_buffer> *buffers;
 	// circular_buffer **buffers;
 	// Logger **loggers;
+	adc_reader reader;
 };
 
 void *threadFunc(void *param);
