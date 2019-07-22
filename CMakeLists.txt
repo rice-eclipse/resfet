@@ -11,9 +11,10 @@ add_subdirectory(src/logger)
 add_subdirectory(src/time)
 add_subdirectory(src/adc)
 add_subdirectory(src/circular_buffer)
+add_subdirectory(src/thread)
 
 # Build the main executable
 add_executable(resfet src/main.cpp)
 
 # Link the libraries
-target_link_libraries(resfet networking logger time adc)
+target_link_libraries(resfet networking logger time adc circular_buffer thread)

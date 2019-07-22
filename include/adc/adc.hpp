@@ -79,8 +79,7 @@ char SENSOR_NAMES[NUM_SENSORS][20] = {
 	"PT_FEED",
 	"TC1",
 	"TC2",
-	"TC3",
-	"NUM_SENSORS"
+	"TC3"
 };
 
 class adc_reader {

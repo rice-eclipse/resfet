@@ -62,7 +62,7 @@ class circular_buffer {
 		 * @param sensor The sensor associated with this circular buffer.
 		 * @param size The number of data_items this circular buffer should be able to hold.
 		 */
-		circular_buffer (SENSOR sensor, uint16_t size);
+		circular_buffer(SENSOR sensor, uint16_t size);
 
 		/**
 		 * @brief Copies a header and new data into the provided buffer.
