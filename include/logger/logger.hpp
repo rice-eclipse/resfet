@@ -15,6 +15,7 @@
 #define MAX_BUF_LEN 256
 
 #include <stdarg.h>
+#include <stdint.h>
 
 /**
  * @brief The log levels that determine what messages are send to
@@ -125,7 +126,7 @@ class Logger {
 		 *
 		 * @data The data to write.
 		 */
-		void data(char *data);
+		void data(uint8_t *data);
 };
 
 #endif

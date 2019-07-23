@@ -111,6 +111,6 @@ void Logger::debug(const char *format, ...) {
 	va_end(argList);
 }
 
-void Logger::data(char *data) {
+void Logger::data(uint8_t *data) {
 	dprintf(file_fd, "%s", data);
 }

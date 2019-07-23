@@ -46,7 +46,7 @@ uint8_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 	tail += bytes_to_copy / sizeof(struct data_item);
 }
 
-void circular_buffer::add_data_item(uint16_t reading, timestamp_t timestamp) {
+BUFF_STATUS circular_buffer::add_data_item(uint16_t reading, timestamp_t timestamp) {
 	struct data_item *next = head + 1;
 
 	/* Check for wrap around */
@@ -56,13 +56,15 @@ void circular_buffer::add_data_item(uint16_t reading, timestamp_t timestamp) {
 	/* Check if the buffer is full */
 	/* TODO log this? */
 	if (next == tail) 
-		return;
+		return BUFF_STATUS::FULL;
 
 	/* Write the new reading into the buffer */
 	head->reading = reading;
 	head->timestamp = timestamp;
 
 	head = next;
+
+	return BUFF_STATUS::JUSTRIGHT;
 }
 
 uint16_t circular_buffer::get_data_length() {

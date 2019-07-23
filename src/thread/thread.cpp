@@ -17,6 +17,8 @@
 #include "logger/logger.hpp"
 #include "time/time.hpp"
 
+#define CIRC_BUFF_SIZE	256
+
 PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors)
 	{
 		int index;
@@ -30,7 +32,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t n
 		param.loggers = new std::vector<Logger>;
 
 		for (index = 0; index < num_sensors; index++) {
-			param.buffers->push_back(circular_buffer(sensors[index], 64));
+			param.buffers->push_back(circular_buffer(sensors[index], CIRC_BUFF_SIZE));
 			param.loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
 					SENSOR_NAMES[sensors[index]], LogLevel::SILENT));
 		}
@@ -46,6 +48,8 @@ void *threadFunc(void *param) {
 	std::vector<Logger>::iterator it_log;
 	uint16_t reading;
 	timestamp_t timestamp;
+	BUFF_STATUS status;
+	uint8_t *b = new uint8_t[sizeof(struct data_item) * CIRC_BUFF_SIZE];
 	
 	while(1) {
 		// printf("In while. Wait time: %lu\n", t_param->sleep_time_ns);
@@ -62,8 +66,11 @@ void *threadFunc(void *param) {
 			reading = t_param->reader.count_up();
 			timestamp = get_elapsed_time_us();
 			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
-			it->add_data_item(reading, timestamp);
-			// it_log->data(reading, timestamp);
+			status = it->add_data_item(reading, timestamp);
+			if (status == BUFF_STATUS::FULL) {
+				it->get_data(&b, sizeof(struct data_item) * CIRC_BUFF_SIZE);
+			}
+			it_log->data(b);
 			it_log++;
 		}
 	}

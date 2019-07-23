@@ -34,6 +34,15 @@ struct data_item {
 	timestamp_t timestamp;
 };
 
+/**
+ * @brief A list of buffer statuses used for return values.
+ */
+enum class BUFF_STATUS {
+	JUSTRIGHT = 0,		
+	EMPTY,
+	FULL
+};
+
 class circular_buffer {
 	private:
 		/* @brief A pointer to the end of this circular buffer */
@@ -77,7 +86,7 @@ class circular_buffer {
 		 * @param reading The reading of the new data_item.
 		 * @param timestamp The timestamp of the new data_item.
 		 */
-		void add_data_item(uint16_t reading, timestamp_t timestamp);
+		BUFF_STATUS add_data_item(uint16_t reading, timestamp_t timestamp);
 
 		/**
 		 * @brief Calculates the number of bytes of unsent data.
