@@ -8,82 +8,109 @@
  * @copyright Copyright (c) 2019
  */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <fstream>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <string>
+#include <unordered_map>
 
 #include "config/config.hpp"
 
-CONFIG_TYPE get_type(const char *type_str) {
-	if (strcmp("CSTRING", type_str) == 0)
-		return CONFIG_TYPE::CSTRING;
-	else if (strcmp("NUMBER", type_str) == 0)
-		return CONFIG_TYPE::NUMBER;
+ConfigMapping::ConfigMapping() {
+	// Create blank private mapping
+	map = std::unordered_map<std::string,
+							 std::unordered_map<std::string, std::string>>();
 }
-	
-uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_t size) {
-	FILE *file;
-	uint8_t match, index = 0;
-	/* TODO check memory leaks with these allocations. Not sure how it works in C++ */
-	char *line = new char[MAX_LINE_LENGTH];
-	char *type_str = new char[MAX_CONFIG_LENGTH];
-	char *key, *value;
-	CONFIG_TYPE type;
-	size_t len;
-	uint8_t num;
 
+ConfigMapping::~ConfigMapping() { /* default destructor */ }
 
-	if ((file = fopen(filename, "r")) == NULL) {
-		dprintf(STDERR_FILENO, "Open config file %s unsuccessful: %s\n",
-				filename, strerror(errno));
+uint8_t ConfigMapping::readFrom(char* filename) {
+	std::fstream file;
+	char line[MAX_LINE_LENGTH];
+	char header_str[MAX_CONFIG_LENGTH], key[MAX_CONFIG_LENGTH], value[MAX_CONFIG_LENGTH];
+	char* current_section = (char*) "";
+	size_t len, line_count = 0;
+
+	// Try to open the given file
+	file.open(filename, std::fstream::in);
+	if (!file) {
+		std::cerr << "Unable to open config file " << filename << std::endl;
 		return 1;
 	}
 
-	while (((getline(&line, &len, file)) != -1) && (index < size)) {
-		/* Skip commented and empty lines */
-		if (line[0] == '#' || line[0] == '\r' || line[0] == '\n')
+	// Clear out mapping
+	map = std::unordered_map<std::string,
+							 std::unordered_map<std::string, std::string>>();
+
+	while (!file.eof()) {
+		file.getline(line, MAX_LINE_LENGTH);
+		line_count++;
+
+		// Skip commented and empty lines
+		if (line[0] == '#' || line[0] == '\r' || line[0] == '\n' || line[0] == '\0')
 			continue;
+
+		// ----- TODO: sketchy stuff below! -----
+		// Using sscanf() in this fashion can result in a buffer overflow
+		// if the given string is longer than MAX_CONFIG_LENGTH. We may want to
+		// look into alternative parsing functions.
+		// ----- end sketchy stuff -----
 		
-		key = new char[MAX_CONFIG_LENGTH];
-		value = new char[MAX_CONFIG_LENGTH];
-		/* Attempt to match headers (that define types) */
-		if ((match = sscanf(line, "[%[^]]]", type_str)) == 1) {
-			type = get_type(type_str);
-		/* Attempt to match key-value pairs */
-		} else if ((match = sscanf(line, "%[^=]=%s", key, value)) == 2) {
-			array[index++] = config_pair(key, value, type);
+		// Attempt to match headers (that define sections)
+		if (sscanf(line, "[%[^]]]", header_str) == 1) {
+			current_section = header_str; // mark current section
+		// Attempt to match key-value pairs      
+		} else if (sscanf(line, "%[^=]=%s", key, value) == 2) {
+			map[current_section][key] = value;
+		// Attempt to match an undefined key
+		} else if (sscanf(line, "%[^=]=", key) == 1) {
+			map[current_section][key] = "";
+		// No match found, line is malformed
 		} else {
-			dprintf(STDERR_FILENO, "Error reading config line: %s",
-					line);
+			std::cerr << "Error reading config line " << line_count
+					  << ": `" << line << "`, line is skipped" << std::endl;
 		}
 	}
+
+	file.close();
 
 	return 0;
-
 }
 
-uint8_t set_config_var(void *var, const char *name, struct config_pair *array, uint8_t size) {
-	uint8_t index = 0;
-	struct config_pair elem;
-
-	/*
-	 * Loop through the array and look for a match on name. Inefficient but
-	 * it should be fine since there should not be that many configs.
-	 */
-	while (index < size) {
-		elem = array[index++];
-		if (strcmp(elem.key, name) == 0) {
-			if (elem.type == CONFIG_TYPE::CSTRING)
-				strncpy((char *)var, elem.cstring, MAX_CONFIG_LENGTH);
-			else if (elem.type == CONFIG_TYPE::NUMBER) {
-				*(uint16_t *)var = elem.number;
-			}
-			return 0;
-		}
-	}
-
+uint8_t ConfigMapping::writeTo(char* filename) {
+	// TODO
 	return 1;
+}
+
+bool ConfigMapping::isPresent(char* section, char* key) {
+	if (map.find(section) == map.end()) {
+		return false;
+	}
+	if (map[section].find(key) == map[section].end()) {
+		return false;
+	}
+	return true;
+}
+
+uint8_t ConfigMapping::getString(char* section, char* key, char* dest, size_t n) {
+	// Make sure the provided key is present
+	if (!isPresent(section, key)) {
+		std::cerr << "Key `" << key << "` not found in section `" << section
+				  << "`" << std::endl;
+		return 1;
+	}
+	std::strncpy(dest, map[section][key].c_str(), n);
+	return 0;
+}
+
+uint8_t ConfigMapping::getInt(char* section, char* key, int* dest) {
+	// Make sure the provided key is present
+	if (!isPresent(section, key)) {
+		std::cerr << "Key `" << key << "` not found in section `" << section
+				  << "`" << std::endl;
+		return 1;
+	}
+	*dest = atoi(map[section][key].c_str());
+	return 0;
 }

@@ -11,101 +11,117 @@
 #ifndef __CONFIG_HPP
 #define __CONFIG_HPP
 
-#include <stdint.h>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
 
+// The maximum length (in characters) for a line from a config file.
 #define MAX_LINE_LENGTH 128
-#define MAX_CONFIG_LENGTH 32
+
+// The maximum length for a key, value, or header from a config file.
+#define MAX_CONFIG_LENGTH 64
 
 /*
  * Format of Config Files
  * 	Headers are enclosed in brackets and are used to separate
- * 	blocks of different types of configs. See CONFIG_TYPE and
- *	get_type.
+ * 	sections of a config file.
  * 	Example: [NUMBER]
  *
  * 	Key-value pairs are separated by an equals sign with no
  * 	spaces.
  * 	Example: port=1234
- */
-
-/*
- * TODO we have to check types twice, both when constructing
- * config_pairs and when retrieving the values. Maybe a
- * varargs implementation would be better.
+ * 
+ *  Key-value pairs defined before the first header reside in the "null"
+ *  section, whose name is the empty string "". This section can be
+ *  custom-overwritten with the header [] later in the file.
+ * 
+ *  Lines beginning with '#' are ignored in parsing and can be used as
+ *  comments.
  */
 
 /**
- * @brief Defines the types of configs that we read. Necessary
- * 	  for converting the raw strings into the right values.
- *
- * TODO expand to more complicated types?
+ * @brief Represents the data of an entire config file.
  */
-enum class CONFIG_TYPE {
-	CSTRING,
-	NUMBER
-};
-
-/**
- * @brief The generic key-value pair format that configuration
- * 	  information is stored in.
- *
- * TODO expand the union if more types are added.
- */
-struct config_pair {
-	char *key;
-
-	/* A config either defines a number of a string */
-	union {
-		uint16_t number;
-		char cstring[MAX_CONFIG_LENGTH];
-	};
-	CONFIG_TYPE type;
-
-	config_pair() = default;
-
-	config_pair(char *key, char *value, CONFIG_TYPE type)
-		: key(key)
-		, type(type)
-		{
-			if (type == CONFIG_TYPE::NUMBER)
-				number = atoi(value);
-			else if (type == CONFIG_TYPE::CSTRING)
-				strncpy(cstring, value, MAX_CONFIG_LENGTH);
-		};
-};	
-
-/**
- * @brief Converts a string that is the name of a config type
- * 	  into the corresponding CONFIG_TYPE.
- *
- * @param type_str The string to be converted.
- */
-CONFIG_TYPE get_type(const char *type_str);
+class ConfigMapping {
+	private:
+		/**
+		 * @brief The central map structure.
+		 * 
+		 * The first layer of the map is the sections of the file, and the
+		 * second layer is the values of keys in that section. For example, for
+		 * a file that has
+ 		 * 
+ 		 * ...
+ 		 * [FOO]
+ 		 * bar=baz
+ 		 * ...
+ 		 * 
+ 		 * the map would have map["FOO"]["bar"] = "baz".
+		 */
+		std::unordered_map<std::string,
+						   std::unordered_map<std::string, std::string>> map;
 	
-/**
- * @brief Reads a config file and places the configuration
- * 	  information in the provided array.
- *
- * @param filename The name of the config file to read.
- * @param array	   The pre-allocated array that is used to return
- * 		   config_pair information to the caller.
- * @param size	   The size of array.
- *
- * @return 1 on error and 0 otherwise.
- */
-uint8_t read_config_file(const char *filename, struct config_pair *array, uint8_t size);
+	public:
+		/**
+		 * @brief Create a blank ConfigMapping with an empty map. Call
+		 * 		  readFrom() to populate the map with a file's contents.
+		 */
+		ConfigMapping();
 
-/**
- * @brief Sets a variable based on an array of config_pairs.
- *
- * @param var	   The variable to be configured.
- * @param name	   The name (key) of the variable to be configured
- * @param array	   The array that contains configuration information
- * 		   for this variable.
- * @param size	   The size of array.
- *
- * @return 1 on error and 0 otherwise.
- */
-uint8_t set_config_var(void *var, const char *name, struct config_pair *array, uint8_t size);
+		/**
+		 * @brief Destroy this ConfigMapping. No special behavior. 
+		 */
+		~ConfigMapping();
+
+		/**
+		 * @brief Read the contents of a config file into this map.
+		 * 
+		 * @param filename the path of the file from which to read
+		 * @return 1 on error, 0 otherwise
+		 */
+		uint8_t readFrom(char* filename);
+
+		/**
+		 * @brief Write the contents of this map out as an INI file.
+		 * 
+		 * (still TODO!)
+		 * 
+		 * @param filename the path of the file to which to write
+		 * @return 1 on error, 0 otherwise
+		 */
+		uint8_t writeTo(char* filename);
+
+		/**
+		 * @brief Tell whether a key is present in this map.
+		 * 
+		 * @param section the section where the key should be located
+		 * @param key 	  the key to search for
+		 * @return true if the key is found in the specified section, false
+		 * 		   otherwise 
+		 */
+		bool isPresent(char* section, char* key);
+
+		/**
+		 * @brief Get a value from the map as a string.
+		 * 
+		 * @param section the section from which to get the value
+		 * @param key 	  the key corresponding to the desired value
+		 * @param dest 	  a buffer into which to store the value
+		 * @param n 	  the maximum number of characters to extract from the
+		 * 				  value (should be the size of the dest buffer)
+		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
+		 */
+		uint8_t getString(char* section, char* key, char* dest, size_t n);
+
+		/**
+		 * @brief Get a value from the map as an integer.
+		 * 
+		 * @param section the section from which to get the value
+		 * @param key 	  the key corresponding to the desired value
+		 * @param dest 	  an int buffer into which to store the value
+		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
+		 */
+		uint8_t getInt(char* section, char* key, int* dest);
+};
 
 #endif
