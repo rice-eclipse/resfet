@@ -26,11 +26,10 @@ circular_buffer::circular_buffer(SENSOR sensor, uint16_t size)
 		tail = data;
 	};
 
-uint8_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
+uint16_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 	uint8_t *buf = *bufptr;
 	struct data_header *header = (struct data_header *)buf;
-	uint16_t bytes_to_copy;
-	uint16_t bytes_written = sizeof(struct data_header);
+	uint16_t bytes_to_copy, bytes_written = sizeof(struct data_header);
 
 	/* TODO account for struct padding */
 	/* Write the data as long as there is data to add */

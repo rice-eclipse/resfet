@@ -18,29 +18,31 @@
 #include "circular_buffer/circular_buffer.hpp"
 #include "logger/logger.hpp"
 
+/**
+ * A struct that contains all the information needed
+ * for a thread to read from an adc periodically and
+ * log the data.
+ *
+ * TODO this is kind of ugly. Tried using std::thread
+ * but I got couldn't pass the 'this' instance.
+ */
 struct thread_param {
-	uint64_t sleep_time_ns;
-	uint8_t num_sensors;
+	adc_reader reader;
 	std::vector<Logger> *loggers;
 	std::vector<circular_buffer> *buffers;
-	adc_reader reader;
+	uint64_t sleep_time_ns;
+	uint8_t num_sensors;
 };
 
+/*
+ * The function a thread executes
+ */
 void *threadFunc(void *param);
 
 class PeriodicThread {
 	private:
 		/* @brief The sleep time in nanoseconds */
 		uint32_t sleep_time_ns;
-
-		/* @brief The list of sensors to read from */
-		// SENSOR *sensors;
-
-		/* @brief The list of loggers */
-		std::vector<Logger> loggers;
-
-		/* @brief The list of circular buffers to store data in */
-		std::vector<circular_buffer> buffers;
 
 		/* @brief The thread that is used to do work */
 		pthread_t thread;
@@ -52,12 +54,13 @@ class PeriodicThread {
 		/**
 		 * @brief The constructor for a Periodic Thread. The thread uses an
 		 * 	  adc_reader() and logger() to periodically read from an ADC
-		 * 	  and save the raw data into a file. Data is stored in a
-		 * 	  circular buffer before it is written.
+		 * 	  and save the raw data into a file. Data writes are buffered
+		 * 	  using a circular buffer.
 		 * 	  TODO send over UDP.
 		 * 	
 		 * @param frequency_hz The frequency to read, in Hertz
 		 * @param sensors The list of sensors to sample
+		 * @param num_sensors The number of sensors to be read
 		 */
 		PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors);
 

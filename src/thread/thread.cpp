@@ -13,8 +13,9 @@
 #include <vector>
 
 #include "adc/adc.hpp"
-#include "thread/thread.hpp"
 #include "logger/logger.hpp"
+#include "networking/Tcp.hpp"
+#include "thread/thread.hpp"
 #include "time/time.hpp"
 
 #define BUFF_SIZE	4096
@@ -46,10 +47,10 @@ void *threadFunc(void *param) {
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
 	std::vector<Logger>::iterator it_log;
-	uint16_t reading;
 	timestamp_t timestamp, old_timestamp = 0;
-	BUFF_STATUS status;
+	uint16_t reading;
 	uint8_t *b = new uint8_t[BUFF_SIZE];
+	BUFF_STATUS status;
 	
 	while(1) {
 		spec.tv_sec = 0;
@@ -67,15 +68,14 @@ void *threadFunc(void *param) {
 			reading = t_param->reader.count_up();
 			timestamp = get_elapsed_time_us();
 			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
+			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
 			status = it->push_data_item(reading, timestamp);
 
 			/* If the circular buffer is full, send the available data */
 			if (status == BUFF_STATUS::FULL) {
 				it->get_data(&b, BUFF_SIZE);
 				it_log->data(b, BUFF_SIZE);
-				it_log->error("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
 			}
-			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
 			old_timestamp = timestamp;
 			it_log++;
 		}
