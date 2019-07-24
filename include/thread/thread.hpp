@@ -23,8 +23,6 @@ struct thread_param {
 	uint8_t num_sensors;
 	std::vector<Logger> *loggers;
 	std::vector<circular_buffer> *buffers;
-	// circular_buffer **buffers;
-	// Logger **loggers;
 	adc_reader reader;
 };
 
@@ -40,11 +38,9 @@ class PeriodicThread {
 
 		/* @brief The list of loggers */
 		std::vector<Logger> loggers;
-		// Logger *loggers;
 
 		/* @brief The list of circular buffers to store data in */
 		std::vector<circular_buffer> buffers;
-		// circular_buffer *buffers;
 
 		/* @brief The thread that is used to do work */
 		pthread_t thread;

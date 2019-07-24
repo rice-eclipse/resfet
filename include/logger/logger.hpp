@@ -126,7 +126,7 @@ class Logger {
 		 *
 		 * @data The data to write.
 		 */
-		void data(uint8_t *data);
+		void data(uint8_t *data, size_t size);
 };
 
 #endif

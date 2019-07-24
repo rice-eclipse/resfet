@@ -26,6 +26,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t n
 		param.reader = adc_reader();
 
 		/* TODO assume we don't sleep for more than 1s */
+		/* TODO sleep time seems to be twice as long as it should be */
 		param.sleep_time_ns = (1.0 / (double)frequency_hz) * 1000000000;
 
 		param.buffers = new std::vector<circular_buffer>;
@@ -34,7 +35,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t n
 		for (index = 0; index < num_sensors; index++) {
 			param.buffers->push_back(circular_buffer(sensors[index], BUFF_SIZE));
 			param.loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
-					SENSOR_NAMES[sensors[index]], LogLevel::SILENT));
+					SENSOR_NAMES[sensors[index]], LogLevel::DEBUG));
 		}
 
 		param.num_sensors = num_sensors;
@@ -53,7 +54,8 @@ void *threadFunc(void *param) {
 	while(1) {
 		spec.tv_sec = 0;
 		spec.tv_nsec = t_param->sleep_time_ns;
-		// TODO check this timing is accurate
+
+		/* Sleep multiple times if we get interrupted while sleeping */
 		while (nanosleep(&spec, &rem) == -1) {
 			printf("New wait time: %lu\n", rem.tv_nsec);
 			spec.tv_nsec = rem.tv_nsec;
@@ -66,13 +68,16 @@ void *threadFunc(void *param) {
 			timestamp = get_elapsed_time_us();
 			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
 			status = it->push_data_item(reading, timestamp);
+
+			/* If the circular buffer is full, send the available data */
 			if (status == BUFF_STATUS::FULL) {
 				it->get_data(&b, BUFF_SIZE);
-				it_log->data(b);
+				it_log->data(b, BUFF_SIZE);
+				it_log->error("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
 			}
-			it_log++;
-			printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
+			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
 			old_timestamp = timestamp;
+			it_log++;
 		}
 	}
 }
