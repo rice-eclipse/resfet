@@ -81,20 +81,19 @@ class circular_buffer {
 		uint8_t get_data(uint8_t **bufptr, uint16_t size);
 
 		/**
-		 * @brief Adds a new data_item to the internal buffer.
+		 * @brief Pushes a new data_item onto the buffer.
 		 *
 		 * @param reading The reading of the new data_item.
 		 * @param timestamp The timestamp of the new data_item.
 		 */
-		BUFF_STATUS add_data_item(uint16_t reading, timestamp_t timestamp);
+		BUFF_STATUS push_data_item(uint16_t reading, timestamp_t timestamp);
 
 		/**
-		 * @brief Calculates the number of bytes of unsent data.
+		 * @brief Pops the next available item in the buffer.
 		 *
-		 * @return The number of bytes of new data.
+		 * @return The item pointed to by the tail pointer.
 		 */
-		uint16_t get_data_length();
-
+		BUFF_STATUS pop_data_item(uint8_t *item);
 };
 
 #endif

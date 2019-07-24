@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "circular_buffer/circular_buffer.hpp"
 #include "time/time.hpp"
@@ -28,25 +29,25 @@ circular_buffer::circular_buffer(SENSOR sensor, uint16_t size)
 uint8_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 	uint8_t *buf = *bufptr;
 	struct data_header *header = (struct data_header *)buf;
-	struct data_item *data_start = (struct data_item *)(buf + sizeof(struct data_header));
+	// struct data_item *data_start = (struct data_item *)(buf + sizeof(struct data_header));
 	uint16_t bytes_to_copy;
-
-	/* Check if the buffer is empty */
-	if (head == tail)
-		return 0;
+	uint16_t bytes_written = sizeof(struct data_header);
 
 	/* Write the header */
 	header->sensor = sensor;
-	header->length = get_data_length(); 
+	
+	/* TODO account for struct padding */
+	while (bytes_written + sizeof(struct data_item) < size && 
+	       pop_data_item(&buf[bytes_written]) != BUFF_STATUS::EMPTY) {
+		bytes_written += sizeof(struct data_item);
+	}
+	header->length = bytes_written;
 
-	/* Copy in as much data as we can without overflowing the buffer */
-	bytes_to_copy = header->length < size ? header->length : size;
-	memcpy(data_start, tail, bytes_to_copy);
-
-	tail += bytes_to_copy / sizeof(struct data_item);
+	printf("Total bytes written: %d\n", bytes_written);
+	return bytes_written;
 }
 
-BUFF_STATUS circular_buffer::add_data_item(uint16_t reading, timestamp_t timestamp) {
+BUFF_STATUS circular_buffer::push_data_item(uint16_t reading, timestamp_t timestamp) {
 	struct data_item *next = head + 1;
 
 	/* Check for wrap around */
@@ -55,8 +56,10 @@ BUFF_STATUS circular_buffer::add_data_item(uint16_t reading, timestamp_t timesta
 
 	/* Check if the buffer is full */
 	/* TODO log this? */
-	if (next == tail) 
+	if (next == tail) {
+		printf("Buffer is full\n");
 		return BUFF_STATUS::FULL;
+	}
 
 	/* Write the new reading into the buffer */
 	head->reading = reading;
@@ -67,10 +70,21 @@ BUFF_STATUS circular_buffer::add_data_item(uint16_t reading, timestamp_t timesta
 	return BUFF_STATUS::JUSTRIGHT;
 }
 
-uint16_t circular_buffer::get_data_length() {
-	/* TODO maybe just have a variable we keep track of for number of unwritten items */
-	if (head > tail)
-		return (uint16_t)(head - tail) * sizeof(struct data_item);
+BUFF_STATUS circular_buffer::pop_data_item(uint8_t *item) {
+	struct data_item *d_item = (struct data_item*)item;
+
+	/* Check if the buffer is empty */
+	if (head == tail) {
+		printf("Buffer is empty\n");
+		return BUFF_STATUS::EMPTY;
+	}
+
+	d_item->reading = tail->reading;
+	d_item->timestamp = tail->timestamp;
+
+	d_item->reading = tail->reading;
+	if (tail >= end)
+		tail = data;
 	else
-		return (uint16_t)((end - tail) + (head - data)) * sizeof(struct data_item);
+		tail++;
 }
