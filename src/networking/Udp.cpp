@@ -21,8 +21,6 @@
 
 #include "networking/Udp.hpp"
 
-// TODO: test reconnect with different address
-
 Udp::OutSocket::OutSocket() {
     // Indicate an invalid/nonexistent socket
     this->fd = -1;
