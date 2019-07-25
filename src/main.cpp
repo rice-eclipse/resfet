@@ -1,51 +1,57 @@
 #include <cstdint>
 #include <iostream>
 
-#include "networking/Tcp.hpp"
+#include "networking/Udp.hpp"
 
-// Simple recv test for TCP interface
+// Simple send test for UDP interface
 int main() {
-    // Try to open a socket for listening
-    Tcp::ListenSocket liSock;
+    // Set up the socket
+    Udp::OutSocket sock;
     try {
-        liSock = Tcp::ListenSocket(1234);
-        liSock.listen();
-    } catch (Tcp::OpFailureException&) {
-        std::cerr << "Could not create/open listening socket" << std::endl;
+        sock.setDest("127.0.0.1", 4444);
+    } catch (Udp::OpFailureException& ofe) {
+        std::cerr << "Could not set destination" << std::endl;
         return -1;
     }
 
-    Tcp::ConnSocket coSock;
-    while (true) {
-        // Try to accept an incoming request
-        try {
-            coSock = liSock.accept();
-        } catch (Tcp::OpFailureException&) {
-            std::cerr << "Unable to accept a connection" << std::endl;
-            return -1;
-        }
-        std::cout << "Connected to client!\n"
-                  << "Hostname: " << coSock.getClientHostname() << "\n"
-                  << "Service: " << coSock.getClientService() << std::endl;
-        
-        // Read individual bytes until '0', then quit and wait for another request
-        uint8_t read;
-        try {
-            while ((read = coSock.recvByte()) != '0') {
-                std::cout << "Read byte: " << read << std::endl;
-            }
-            std::cout << "Read 0: " << read << std::endl;
-        } catch (Tcp::ClientDisconnectException&) {
-            std::cerr << "Client disconnected prematurely, waiting for new connection..."
-                      << std::endl;
-        } catch (Tcp::OpFailureException&) {
-            std::cerr << "Problem reading, closing connection" << std::endl;
-        }
-
-        coSock.close();
+    // Open the socket up for sending
+    try {
+        sock.enable();
+    } catch (Udp::OpFailureException& ofe) {
+        std::cerr << "Could not open socket" << std::endl;
+        return -1;
     }
 
-    liSock.close();
-    
+    // Send a single byte
+    try {
+        sock.sendByte(5);
+    } catch (Udp::BadOutSocketException& bse) {
+        std::cerr << "Socket is not open" << std::endl;
+        return -1;
+    } catch (Udp::OpFailureException& ose) {
+        std::cerr << "Unable to send byte" << std::endl;
+        return -1;
+    }
+
+    // Send multiple bytes
+    char buf[24] = "Hello, message for you!";
+    try {
+        sock.sendBuf((uint8_t*) buf, 24);
+    } catch (Udp::BadOutSocketException& bse) {
+        std::cerr << "Socket is not open" << std::endl;
+        return -1;
+    } catch (Udp::OpFailureException& ose) {
+        std::cerr << "Unable to send bytes" << std::endl;
+        return -1;
+    }
+
+    // Close the socket
+    try {
+        sock.close();
+    } catch (Udp::OpFailureException& ose) {
+        std::cerr << "Could not close socket" << std::endl;
+        return -1;
+    }
+
     return 0;
 }
