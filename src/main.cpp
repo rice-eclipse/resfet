@@ -1,16 +1,20 @@
 #include <cstdint>
 #include <iostream>
+#include <string.h>
 
 #include "networking/Udp.hpp"
+#include "logger/logger.hpp"
 
 // Simple send test for UDP interface
 int main() {
+    Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
+  
     // Set up the socket
     Udp::OutSocket sock;
     try {
         sock.setDest("127.0.0.1", 4444);
     } catch (Udp::OpFailureException& ofe) {
-        std::cerr << "Could not set destination" << std::endl;
+        network_logger.error("Could not set destination\n");
         return -1;
     }
 
@@ -18,7 +22,7 @@ int main() {
     try {
         sock.enable();
     } catch (Udp::OpFailureException& ofe) {
-        std::cerr << "Could not open socket" << std::endl;
+        network_logger.error("Could not open socket\n");
         return -1;
     }
 
@@ -26,10 +30,10 @@ int main() {
     try {
         sock.sendByte(5);
     } catch (Udp::BadOutSocketException& bse) {
-        std::cerr << "Socket is not open" << std::endl;
+        network_logger.error("Socket is not open\n");
         return -1;
     } catch (Udp::OpFailureException& ose) {
-        std::cerr << "Unable to send byte" << std::endl;
+        network_logger.error("Unable to send byte\n");
         return -1;
     }
 
@@ -38,10 +42,10 @@ int main() {
     try {
         sock.sendBuf((uint8_t*) buf, 24);
     } catch (Udp::BadOutSocketException& bse) {
-        std::cerr << "Socket is not open" << std::endl;
+        network_logger.error("Socket is not open\n");
         return -1;
     } catch (Udp::OpFailureException& ose) {
-        std::cerr << "Unable to send bytes" << std::endl;
+        network_logger.error("Unable to send bytes\n");
         return -1;
     }
 
@@ -49,7 +53,7 @@ int main() {
     try {
         sock.close();
     } catch (Udp::OpFailureException& ose) {
-        std::cerr << "Could not close socket" << std::endl;
+        network_logger.error("Could not close socket\n");
         return -1;
     }
 
