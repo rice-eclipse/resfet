@@ -6,66 +6,43 @@
 #include "logger/logger.hpp"
 #include "config/config.hpp"
 
-// Simple recv test for TCP interface
-int main() {
-    Logger network_logger ("Networking", "NetworkLog", LogLevel::DEBUG);
-    Logger status_logger ("Status", "StatusLog", LogLevel::DEBUG);
-    uint16_t port;
+// Simple config file input example
+int main(int argc, char** argv) {
+    Logger status_logger("Status", "StatusLog", LogLevel::DEBUG);
+    ConfigMapping config;
+    char engine[MAX_CONFIG_LENGTH], hey[MAX_CONFIG_LENGTH], foo[MAX_CONFIG_LENGTH], jig[MAX_CONFIG_LENGTH];
+    int port;
 
-    struct config_pair configs[2];
-    char *engine = new char[16];
-
-    read_config_file("config.ini", configs, 2);
-    if (set_config_var(&port, "port", configs, 2) != 0) {
-	   status_logger.error("Error retrieving port from config\n"); 
-    }
-    if (set_config_var(engine, "engine", configs, 2) != 0) {
-	   status_logger.error("Error retrieving engine from config\n"); 
-    }
-
-    status_logger.info("Port from config is %d\n", port);
-    status_logger.info("Engine from config is %s\n", engine);
-
-    // Try to open a socket for listening
-    Tcp::ListenSocket liSock;
-    try {
-        liSock = Tcp::ListenSocket(port);
-        liSock.listen();
-    } catch (Tcp::OpFailureException&) {
-		network_logger.error("Could not create/open listening socket\n");	
+    if (argc < 2) {
+        status_logger.error("Please provide a config filename\n");
         return -1;
     }
 
-    Tcp::ConnSocket coSock;
-    while (true) {
-        // Try to accept an incoming request
-        try {
-            coSock = liSock.accept();
-        } catch (Tcp::OpFailureException&) {
-			network_logger.error("Unable to accept a connection\n");	
-            return -1;
-        }
-		network_logger.info("Connected to client!\n");
-		network_logger.info("Hostname: %s\n", coSock.getClientHostname().c_str());
-		network_logger.info("Service: %s\n", coSock.getClientService().c_str());
-        
-        // Read individual bytes until '0', then quit and wait for another request
-        uint8_t read;
-        try {
-            while ((read = coSock.recvByte()) != '0') {
-		network_logger.info("Read byte: %c\n", read);
-            }
-		network_logger.info("Read 0: %c\n", read);
-        } catch (Tcp::ClientDisconnectException&) {
-		network_logger.info("Client disconnected prematurely, waiting for new connection...\n");
-        } catch (Tcp::OpFailureException&) {
-		network_logger.info("Problem reading, closing connection\n");
-        }
-
-        coSock.close();
+    if (config.readFrom(argv[1]) != 0) {
+        status_logger.error("File `%s` could not be read\n", argv[1]);
+        return -1;
+    }
+    if (config.getString("", "hey", hey, MAX_CONFIG_LENGTH) != 0) {
+        status_logger.error("Error retrieving from null section\n");
+        return -1;
+    }
+    if (config.getInt("NUMBER", "port", &port) != 0) {
+	   status_logger.error("Error retrieving port from config\n");
+       return -1;
+    }
+    if (config.getString("CSTRING", "engine", engine, MAX_CONFIG_LENGTH) != 0) {
+	   status_logger.error("Error retrieving engine from config\n");
+       return -1;
+    }
+    if (config.getString("BLAH", "foo", foo, MAX_CONFIG_LENGTH) != 0) {
+        status_logger.error("Error retrieving foo\n");
+        return -1;
     }
 
-    liSock.close();
-    
+    status_logger.info("Value of `hey` is %s", hey);
+    status_logger.info("Port from config is %d\n", port);
+    status_logger.info("Engine from config is %s\n", engine);
+    status_logger.info("Value of `foo` is %s\n", foo);
+
     return 0;
 }
