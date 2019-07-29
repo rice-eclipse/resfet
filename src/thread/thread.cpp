@@ -14,13 +14,14 @@
 
 #include "adc/adc.hpp"
 #include "logger/logger.hpp"
-#include "networking/Tcp.hpp"
 #include "thread/thread.hpp"
 #include "time/time.hpp"
+#include "networking/Udp.hpp"
 
-#define BUFF_SIZE	4096
+/* TODO this has to be 16n + 8 */
+#define BUFF_SIZE	264
 
-PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors)
+PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors, Udp::OutSocket *sock)
 	{
 		int index;
 
@@ -40,6 +41,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t n
 		}
 
 		param.num_sensors = num_sensors;
+		param.sock = sock;
 	}
 
 void *threadFunc(void *param) {
@@ -75,6 +77,13 @@ void *threadFunc(void *param) {
 			if (status == BUFF_STATUS::FULL) {
 				it->get_data(&b, BUFF_SIZE);
 				it_log->data(b, BUFF_SIZE);
+				if (t_param->sock != NULL && t_param->sock->getFd() != -1)
+					t_param->sock->sendBuf(b, BUFF_SIZE);
+				else {
+					printf("Problem with socket\n");
+					return NULL;
+				}
+				// printf("Sent over udp\n");
 			}
 			old_timestamp = timestamp;
 			it_log++;

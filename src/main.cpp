@@ -10,11 +10,6 @@
 int main() {
     Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
 
-    /* Set up a thread for reading load cells */
-    SENSOR sensors[4] = {SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3};
-    PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4);
-    per_thread.start();
-  
     // Set up the socket
     Udp::OutSocket sock;
     try {
@@ -23,7 +18,7 @@ int main() {
         network_logger.error("Could not set destination\n");
         return -1;
     }
-
+  
     // Open the socket up for sending
     try {
         sock.enable();
@@ -32,6 +27,14 @@ int main() {
         return -1;
     }
 
+    /* Set up a thread for reading load cells */
+    SENSOR sensors[4] = {SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3};
+    PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4, &sock);
+    per_thread.start();
+
+    while (1);
+
+    /*
     // Send a single byte
     try {
         sock.sendByte(5);
@@ -62,6 +65,7 @@ int main() {
         network_logger.error("Could not close socket\n");
         return -1;
     }
+    */
 
     return 0;
 }

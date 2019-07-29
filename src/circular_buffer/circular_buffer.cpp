@@ -21,7 +21,7 @@ circular_buffer::circular_buffer(SENSOR sensor, uint16_t size)
 	: sensor(sensor)
 	{
 		data = new data_item[size];
-		end = data + size / sizeof(struct data_item);
+		end = data + size / sizeof(struct data_item) + 1;
 		head = data;
 		tail = data;
 	};
@@ -42,7 +42,6 @@ uint16_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 	header->sensor = sensor;
 	header->length = bytes_written;
 
-	// printf("Total bytes written: %d\n", bytes_written);
 	return bytes_written;
 }
 
@@ -83,7 +82,6 @@ BUFF_STATUS circular_buffer::pop_data_item(uint8_t *item) {
 	d_item->timestamp = tail->timestamp;
 
 	/* Check for wrap around when incrementing */
-	d_item->reading = tail->reading;
 	if (tail >= end)
 		tail = data;
 	else

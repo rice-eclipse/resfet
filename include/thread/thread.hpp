@@ -17,6 +17,7 @@
 #include "adc/adc.hpp"
 #include "circular_buffer/circular_buffer.hpp"
 #include "logger/logger.hpp"
+#include "networking/Udp.hpp"
 
 /**
  * A struct that contains all the information needed
@@ -32,6 +33,8 @@ struct thread_param {
 	std::vector<circular_buffer> *buffers;
 	uint64_t sleep_time_ns;
 	uint8_t num_sensors;
+	Udp::OutSocket *sock;
+
 };
 
 /*
@@ -62,7 +65,7 @@ class PeriodicThread {
 		 * @param sensors The list of sensors to sample
 		 * @param num_sensors The number of sensors to be read
 		 */
-		PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors);
+		PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors, Udp::OutSocket *sock);
 
 		void start();
 
