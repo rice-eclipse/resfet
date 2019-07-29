@@ -18,3 +18,6 @@ add_executable(resfet src/main.cpp)
 
 # Link the libraries
 target_link_libraries(resfet networking logger time adc circular_buffer thread)
+
+# Build the test executables
+add_executable(udp_echo_server test/src/udp_echo_server.cpp)
