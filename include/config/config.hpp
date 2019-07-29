@@ -79,7 +79,7 @@ class ConfigMapping {
 		 * @param filename the path of the file from which to read
 		 * @return 1 on error, 0 otherwise
 		 */
-		uint8_t readFrom(char* filename);
+		uint8_t readFrom(const char* filename);
 
 		/**
 		 * @brief Write the contents of this map out as an INI file.
@@ -89,7 +89,7 @@ class ConfigMapping {
 		 * @param filename the path of the file to which to write
 		 * @return 1 on error, 0 otherwise
 		 */
-		uint8_t writeTo(char* filename);
+		uint8_t writeTo(const char* filename);
 
 		/**
 		 * @brief Tell whether a key is present in this map.
@@ -99,7 +99,7 @@ class ConfigMapping {
 		 * @return true if the key is found in the specified section, false
 		 * 		   otherwise 
 		 */
-		bool isPresent(char* section, char* key);
+		bool isPresent(const char* section, const char* key);
 
 		/**
 		 * @brief Get a value from the map as a string.
@@ -111,7 +111,7 @@ class ConfigMapping {
 		 * 				  value (should be the size of the dest buffer)
 		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
 		 */
-		uint8_t getString(char* section, char* key, char* dest, size_t n);
+		uint8_t getString(const char* section, const char* key, char* dest, size_t n);
 
 		/**
 		 * @brief Get a value from the map as an integer.
@@ -121,7 +121,7 @@ class ConfigMapping {
 		 * @param dest 	  an int buffer into which to store the value
 		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
 		 */
-		uint8_t getInt(char* section, char* key, int* dest);
+		uint8_t getInt(const char* section, const char* key, int* dest);
 };
 
 #endif
