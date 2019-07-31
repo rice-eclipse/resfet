@@ -21,31 +21,43 @@
 /* TODO this has to be 16n + 8 */
 #define BUFF_SIZE	264
 
-PeriodicThread::PeriodicThread(uint16_t frequency_hz, SENSOR *sensors, uint8_t num_sensors, Udp::OutSocket *sock)
-	{
-		int index;
+PeriodicThread::PeriodicThread(uint16_t frequency_hz,
+							  SENSOR *sensors,
+							  uint8_t num_sensors,
+							  Udp::OutSocket *sock)
+{
+	this->reader = adc_reader();
 
-		param.reader = adc_reader();
+	// TODO assume we don't sleep for more than 1s
+	// TODO sleep time seems to be twice as long as it should be
+	this->sleep_time_ns = (1.0 / (double)frequency_hz) * 1000000000;
 
-		/* TODO assume we don't sleep for more than 1s */
-		/* TODO sleep time seems to be twice as long as it should be */
-		param.sleep_time_ns = (1.0 / (double)frequency_hz) * 1000000000;
+	this->buffers = new std::vector<circular_buffer>;
+	this->loggers = new std::vector<Logger>;
 
-		param.buffers = new std::vector<circular_buffer>;
-		param.loggers = new std::vector<Logger>;
-
-		for (index = 0; index < num_sensors; index++) {
-			param.buffers->push_back(circular_buffer(sensors[index], BUFF_SIZE));
-			param.loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
-					SENSOR_NAMES[sensors[index]], LogLevel::DEBUG));
-		}
-
-		param.num_sensors = num_sensors;
-		param.sock = sock;
+	for (int index = 0; index < num_sensors; index++) {
+		this->buffers->push_back(circular_buffer(sensors[index], BUFF_SIZE));
+		this->loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
+						  		 SENSOR_NAMES[sensors[index]], LogLevel::DEBUG));
 	}
 
-void *threadFunc(void *param) {
-	struct thread_param *t_param = (struct thread_param *)param;
+	this->num_sensors = num_sensors;
+	this->sock = sock;
+}
+
+PeriodicThread::~PeriodicThread() {
+	delete this->buffers;
+	delete this->loggers;
+}
+
+// The function that is run by each thread
+static void *threadFunc(adc_reader reader,
+						std::vector<Logger>* loggers,
+						std::vector<circular_buffer>* buffers,
+						uint64_t sleep_time_ns,
+						uint8_t num_sensors,
+						Udp::OutSocket* sock)
+{
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
 	std::vector<Logger>::iterator it_log;
@@ -54,20 +66,21 @@ void *threadFunc(void *param) {
 	uint8_t *b = new uint8_t[BUFF_SIZE];
 	BUFF_STATUS status;
 	
+	// TODO: ever break out of this loop?
 	while(1) {
 		spec.tv_sec = 0;
-		spec.tv_nsec = t_param->sleep_time_ns;
+		spec.tv_nsec = sleep_time_ns;
 
-		/* Sleep multiple times if we get interrupted while sleeping */
+		// Sleep multiple times if we get interrupted while sleeping
 		while (nanosleep(&spec, &rem) == -1) {
 			printf("New wait time: %lu\n", rem.tv_nsec);
 			spec.tv_nsec = rem.tv_nsec;
 		}
 
-		it_log = t_param->loggers->begin();
-		for (it = t_param->buffers->begin(); it != t_param->buffers->end(); ++it) {
+		it_log = loggers->begin();
+		for (it = buffers->begin(); it != buffers->end(); ++it) {
 			// TODO replace count_up with actual sampling
-			reading = t_param->reader.count_up();
+			reading = reader.count_up();
 			timestamp = get_elapsed_time_us();
 			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
 			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
@@ -77,8 +90,8 @@ void *threadFunc(void *param) {
 			if (status == BUFF_STATUS::FULL) {
 				it->get_data(&b, BUFF_SIZE);
 				it_log->data(b, BUFF_SIZE);
-				if (t_param->sock != NULL && t_param->sock->getFd() != -1)
-					t_param->sock->sendBuf(b, BUFF_SIZE);
+				if (sock != NULL && sock->getFd() != -1)
+					sock->sendBuf(b, BUFF_SIZE);
 				else {
 					printf("Problem with socket\n");
 					return NULL;
@@ -89,8 +102,18 @@ void *threadFunc(void *param) {
 			it_log++;
 		}
 	}
+
+	// Clean up
+	delete b;
 }
 
 void PeriodicThread::start() {
-	pthread_create(&thread, NULL, threadFunc, (void *)&param);
+	core_thread = std::thread(threadFunc,
+							  this->reader,
+							  this->loggers,
+							  this->buffers,
+							  this->sleep_time_ns,
+							  this->num_sensors,
+							  this->sock);
+	core_thread.detach();
 }
