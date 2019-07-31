@@ -43,18 +43,30 @@ enum class BUFF_STATUS {
 	FULL
 };
 
+/**
+ * @brief A simple circular buffer for data_item structs. Intended only for a
+ * 		  single thread--it is NOT thread-safe.
+ */
 class circular_buffer {
 	private:
-		/* @brief A pointer to the end of this circular buffer */
+		/**
+		 * @brief A pointer to the end of this circular buffer
+		 */
 		struct data_item *end;
 
-		/* @brief The array of data_items this circular buffer stores */
+		/** 
+		 * @brief The array of data_items this circular buffer stores
+		 */
 		struct data_item *data;
 
-		/* @brief A pointer to the head of this circular buffer */
+		/**
+		 * @brief A pointer to the head of this circular buffer.
+		 */
 		struct data_item *head;
 
-		/* @brief A pointer to the tail of this circular buffer */
+		/**
+		 * @brief A pointer to the tail of this circular buffer.
+		 */
 		struct data_item *tail;
 
 	public:
