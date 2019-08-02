@@ -17,11 +17,11 @@
 #include "time/time.hpp"
 #include "adc/adc.hpp"
 
-circular_buffer::circular_buffer(SENSOR sensor, uint16_t size)
+circular_buffer::circular_buffer(SENSOR sensor, uint16_t num_items)
 	: sensor(sensor)
 	{
-		data = new data_item[size];
-		end = data + size / sizeof(struct data_item) + 1;
+		data = new data_item[num_items];
+		end = data + num_items + 1;
 		head = data;
 		tail = data;
 	};
@@ -33,7 +33,7 @@ uint16_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 
 	/* TODO account for struct padding */
 	/* Write the data as long as there is data to add */
-	while (bytes_written + sizeof(struct data_item) < size && 
+	while (bytes_written + sizeof(struct data_item) <= size && 
 	       pop_data_item(&buf[bytes_written]) != BUFF_STATUS::EMPTY) {
 		bytes_written += sizeof(struct data_item);
 	}
@@ -82,8 +82,7 @@ BUFF_STATUS circular_buffer::pop_data_item(uint8_t *item) {
 	d_item->timestamp = tail->timestamp;
 
 	/* Check for wrap around when incrementing */
+	tail++;
 	if (tail >= end)
 		tail = data;
-	else
-		tail++;
 }

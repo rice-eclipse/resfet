@@ -36,7 +36,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 	this->loggers = new std::vector<Logger>;
 
 	for (int index = 0; index < num_sensors; index++) {
-		this->buffers->push_back(circular_buffer(sensors[index], BUFF_SIZE));
+		this->buffers->push_back(circular_buffer(sensors[index], 16));
 		this->loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
 						  		 SENSOR_NAMES[sensors[index]], LogLevel::DEBUG));
 	}

@@ -78,9 +78,9 @@ class circular_buffer {
 		 *
 		 * @param start_time_us The starting time offset in microseconds.
 		 * @param sensor The sensor associated with this circular buffer.
-		 * @param size The number of bytes this circular buffer should hold.
+		 * @param num_items The number of data_items this circular buffer should hold.
 		 */
-		circular_buffer(SENSOR sensor, uint16_t size);
+		circular_buffer(SENSOR sensor, uint16_t num_items);
 
 		/**
 		 * @brief Copies a header and new data into the provided buffer.
