@@ -37,7 +37,7 @@ struct adc_info {
  * Warning before changing: This enum is used for
  * array indexes.
  */
-enum SENSOR {
+enum SENSOR: uint8_t {
 		LC_MAIN = 0,
 		LC1,
 		LC2,

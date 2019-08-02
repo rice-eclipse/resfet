@@ -19,18 +19,28 @@
 /**
  * @brief The header of a packet that describes the type of
  * 	  sensor and number of following data_items.
+ *
+ * The valid field is 0 if the resulting bytes are valid and
+ * -1 (all 1s in 2s complement) otherwise. It isn't super
+ *  necessary but we have extra space anyways due to struct
+ *  field padding.
  */
 struct data_header {
 	SENSOR sensor;
+	uint8_t valid;
 	uint16_t length;
 };
 
 /**
  * @brief A combination of an ADC reading and a timestamp of
  * 	  when the reading was taken.
+ *
+ * TODO use the pad for something useful. Maybe package multiple
+ * readings into one data_item.
  */
 struct data_item {
 	uint16_t reading;
+	uint8_t pad[6];
 	timestamp_t timestamp;
 };
 

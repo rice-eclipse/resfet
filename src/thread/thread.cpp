@@ -18,8 +18,8 @@
 #include "time/time.hpp"
 #include "networking/Udp.hpp"
 
-/* TODO this has to be 16n + 8 */
-#define BUFF_SIZE	264
+/* TODO this has to be 16n + 4 */
+#define BUFF_SIZE	260
 
 PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 							  SENSOR *sensors,

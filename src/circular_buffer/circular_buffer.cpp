@@ -24,6 +24,8 @@ circular_buffer::circular_buffer(SENSOR sensor, uint16_t num_items)
 		end = data + num_items + 1;
 		head = data;
 		tail = data;
+
+		printf("sizes: %lu %lu\n", sizeof(struct data_header), sizeof(struct data_item));
 	};
 
 uint16_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
@@ -41,6 +43,11 @@ uint16_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
 	/* Write the header */
 	header->sensor = sensor;
 	header->length = bytes_written;
+
+	/* TODO check validity? */
+	header->valid = 0;
+
+	// printf("Bytes written: %lu\n", bytes_written);
 
 	return bytes_written;
 }
