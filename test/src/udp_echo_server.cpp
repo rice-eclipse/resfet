@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     // Get user's requested port number
     int port;
     if (argc < 2) {
-        port = 4444;
+        port = 1234;
         std::cout << "No port given, setting it to 4444" << std::endl;
     } else {
         port = std::atoi(argv[1]);

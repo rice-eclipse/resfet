@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "networking/Udp.hpp"
+#include "networking/Tcp.hpp"
 #include "logger/logger.hpp"
 #include "thread/thread.hpp"
 
@@ -13,7 +14,7 @@ int main() {
     // Set up the socket
     Udp::OutSocket sock;
     try {
-        sock.setDest("127.0.0.1", 4444);
+        sock.setDest("127.0.0.1", 1234);
     } catch (Udp::OpFailureException& ofe) {
         network_logger.error("Could not set destination\n");
         return -1;
@@ -32,40 +33,43 @@ int main() {
     PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4, &sock);
     per_thread.start();
 
-    while (1);
-
-    /*
-    // Send a single byte
+    Tcp::ListenSocket liSock;
     try {
-        sock.sendByte(5);
-    } catch (Udp::BadOutSocketException& bse) {
-        network_logger.error("Socket is not open\n");
-        return -1;
-    } catch (Udp::OpFailureException& ose) {
-        network_logger.error("Unable to send byte\n");
-        return -1;
+	    liSock = Tcp::ListenSocket(1234);
+	    liSock.listen();
+    } catch (Tcp::OpFailureException&) {
+	    network_logger.error("Could not create/open listening socket\n");
+	    return (-1);
     }
 
-    // Send multiple bytes
-    char buf[24] = "Hello, message for you!";
-    try {
-        sock.sendBuf((uint8_t*) buf, 24);
-    } catch (Udp::BadOutSocketException& bse) {
-        network_logger.error("Socket is not open\n");
-        return -1;
-    } catch (Udp::OpFailureException& ose) {
-        network_logger.error("Unable to send bytes\n");
-        return -1;
+    Tcp::ConnSocket coSock;
+
+    while (1) {
+	    try {
+		    coSock = liSock.accept();
+	    } catch (Tcp::OpFailureException&) {
+		    network_logger.error("Unable to accept a connection\n");
+		    return (-1);
+	    }
+
+	    network_logger.info("Connected to client: %s\n", coSock.getClientHostname().c_str());
+
+	    uint8_t read;
+	    try {
+		    while ((read = coSock.recvByte()) != '0') {
+			    network_logger.info("Read byte: %c\n", read);
+		    }
+	    } catch (Tcp::ClientDisconnectException&) {
+		    network_logger.info("Client disconnected prematurely\n");
+	    } catch (Tcp::OpFailureException&) {
+		    network_logger.info("Problem reading, closing connection\n");
+	    }
+
+	    coSock.close();
     }
 
-    // Close the socket
-    try {
-        sock.close();
-    } catch (Udp::OpFailureException& ose) {
-        network_logger.error("Could not close socket\n");
-        return -1;
-    }
-    */
+    liSock.close();
+    sock.close();
 
     return 0;
 }

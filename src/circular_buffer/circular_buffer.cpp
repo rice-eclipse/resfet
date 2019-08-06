@@ -24,8 +24,6 @@ circular_buffer::circular_buffer(SENSOR sensor, uint16_t num_items)
 		end = data + num_items + 1;
 		head = data;
 		tail = data;
-
-		printf("sizes: %lu %lu\n", sizeof(struct data_header), sizeof(struct data_item));
 	};
 
 uint16_t circular_buffer::get_data(uint8_t **bufptr, uint16_t size) {
