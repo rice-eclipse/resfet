@@ -15,3 +15,6 @@ script:
     - cd build
     - cmake ..
     - make
+
+notifications:
+  slack: riceeclipse:gkom2AO57EGZmxU2wWPEtyR2
