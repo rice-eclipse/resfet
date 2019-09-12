@@ -15,6 +15,7 @@
 #define MAX_BUF_LEN 256
 
 #include <stdarg.h>
+#include <stdint.h>
 
 /**
  * @brief The log levels that determine what messages are send to
@@ -76,7 +77,7 @@ class Logger {
 		 */
 		char buf[MAX_BUF_LEN];
 
-		/*
+		/**
 		 * @brief Attempts to create a log file and any intermediate directories.
 		 * 	  	  The default directory is logs/filename, where the logs/ directory
 		 * 	  	  is relative to the current working directory.
@@ -86,13 +87,12 @@ class Logger {
 		int create_log_file();
 
 	public:
-
-		/*
+		/**
 		 * @brief Constructor for the logger.
 		 */
 		Logger(const char *name, const char *filename, LogLevel log_level);
 
-		/*
+		/**
 		 * @brief Logs a message if the logger's log level is at least as high
 		 * 	  	  as the provided log level. 
 		 * @msg	  The message to log.
@@ -100,23 +100,33 @@ class Logger {
 		 */
 		void log(const char *format, LogLevel level, va_list argList);
 
-		/*
+		/**
 		 * @brief Logs an ERROR level message.
-		 * @msg	  The message to log.
+		 *
+		 * @format The format string for the message.
 		 */
 		void error(const char *format, ...);
 
-		/*
+		/**
 		 * @brief Logs an INFO level message.
-		 * @msg	  The message to log.
+		 *
+		 * @format The format string for the message.
 		 */
 		void info(const char *format, ...);
 
-		/*
+		/**
 		 * @brief Logs a DEBUG level message.
-		 * @msg	  The message to log.
+		 *
+		 * @format The format string for the message.
 		 */
 		void debug(const char *format, ...);
+
+		/**
+		 * @brief Logs raw data.
+		 *
+		 * @data The data to write.
+		 */
+		void data(uint8_t *data, size_t size);
 };
 
 #endif

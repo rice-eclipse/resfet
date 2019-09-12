@@ -110,3 +110,13 @@ void Logger::debug(const char *format, ...) {
 	log(format, LogLevel::DEBUG, argList);
 	va_end(argList);
 }
+
+void Logger::data(uint8_t *data, size_t size) {
+	/* Check the log file exists */
+	if (file_fd == -1) {
+		dprintf(STDERR_FILENO, "Attempting to log when log file is null\n");
+		return;
+	}
+
+	write(file_fd, data, size);
+}

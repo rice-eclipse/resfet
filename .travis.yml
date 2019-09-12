@@ -10,4 +10,11 @@ addons:
             - cmake
 
 script:
-    - ./autobuild.sh
+    - ./install_dependencies.sh
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
+
+notifications:
+  slack: riceeclipse:gkom2AO57EGZmxU2wWPEtyR2

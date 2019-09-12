@@ -2,47 +2,73 @@
 #include <iostream>
 #include <string.h>
 
+#include "networking/Udp.hpp"
 #include "networking/Tcp.hpp"
 #include "logger/logger.hpp"
 #include "config/config.hpp"
+#include "thread/thread.hpp"
 
-// Simple config file input example
-int main(int argc, char** argv) {
-    Logger status_logger("Status", "StatusLog", LogLevel::DEBUG);
-    ConfigMapping config;
-    char engine[MAX_CONFIG_LENGTH], hey[MAX_CONFIG_LENGTH], foo[MAX_CONFIG_LENGTH], jig[MAX_CONFIG_LENGTH];
-    int port;
+// Simple send test for UDP interface
+int main() {
+    Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
 
-    if (argc < 2) {
-        status_logger.error("Please provide a config filename\n");
+    // Set up the socket
+    Udp::OutSocket sock;
+    try {
+        sock.setDest("127.0.0.1", 1234);
+    } catch (Udp::OpFailureException& ofe) {
+        network_logger.error("Could not set destination\n");
+        return -1;
+    }
+  
+    // Open the socket up for sending
+    try {
+        sock.enable();
+    } catch (Udp::OpFailureException& ofe) {
+        network_logger.error("Could not open socket\n");
         return -1;
     }
 
-    if (config.readFrom(argv[1]) != 0) {
-        status_logger.error("File `%s` could not be read\n", argv[1]);
-        return -1;
-    }
-    if (config.getString("", "hey", hey, MAX_CONFIG_LENGTH) != 0) {
-        status_logger.error("Error retrieving from null section\n");
-        return -1;
-    }
-    if (config.getInt("NUMBER", "port", &port) != 0) {
-	   status_logger.error("Error retrieving port from config\n");
-       return -1;
-    }
-    if (config.getString("CSTRING", "engine", engine, MAX_CONFIG_LENGTH) != 0) {
-	   status_logger.error("Error retrieving engine from config\n");
-       return -1;
-    }
-    if (config.getString("BLAH", "foo", foo, MAX_CONFIG_LENGTH) != 0) {
-        status_logger.error("Error retrieving foo\n");
-        return -1;
+    /* Set up a thread for reading load cells */
+    SENSOR sensors[4] = {SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3};
+    PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4, &sock);
+    per_thread.start();
+
+    Tcp::ListenSocket liSock;
+    try {
+	    liSock = Tcp::ListenSocket(1234);
+	    liSock.listen();
+    } catch (Tcp::OpFailureException&) {
+	    network_logger.error("Could not create/open listening socket\n");
+	    return (-1);
     }
 
-    status_logger.info("Value of `hey` is %s", hey);
-    status_logger.info("Port from config is %d\n", port);
-    status_logger.info("Engine from config is %s\n", engine);
-    status_logger.info("Value of `foo` is %s\n", foo);
+    Tcp::ConnSocket coSock;
+
+    while (1) {
+	    try {
+		    coSock = liSock.accept();
+	    } catch (Tcp::OpFailureException&) {
+		    network_logger.error("Unable to accept a connection\n");
+		    return (-1);
+	    }
+
+	    network_logger.info("Connected to client: %s\n", coSock.getClientHostname().c_str());
+
+	    uint8_t read;
+	    try {
+		    while ((read = coSock.recvByte()) != '0') {
+			    network_logger.info("Read byte: %c\n", read);
+		    }
+	    } catch (Tcp::ClientDisconnectException&) {
+		    network_logger.info("Client disconnected prematurely\n");
+	    } catch (Tcp::OpFailureException&) {
+		    network_logger.info("Problem reading, closing connection\n");
+	    }
+
+	  coSock.close();
+    liSock.close();
+    sock.close();
 
     return 0;
 }
