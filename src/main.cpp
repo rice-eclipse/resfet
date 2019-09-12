@@ -5,6 +5,7 @@
 #include "networking/Udp.hpp"
 #include "networking/Tcp.hpp"
 #include "logger/logger.hpp"
+#include "config/config.hpp"
 #include "thread/thread.hpp"
 
 // Simple send test for UDP interface
@@ -65,9 +66,9 @@ int main() {
 		    network_logger.info("Problem reading, closing connection\n");
 	    }
 
-	    coSock.close();
+        coSock.close();
     }
-
+    
     liSock.close();
     sock.close();
 
