@@ -66,7 +66,9 @@ int main() {
 		    network_logger.info("Problem reading, closing connection\n");
 	    }
 
-	  coSock.close();
+        coSock.close();
+    }
+    
     liSock.close();
     sock.close();
 
