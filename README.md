@@ -11,6 +11,32 @@ robust (and better documented :-P) than its predecessor.
 [RESFET Dashboard](https://www.github.com/rice-eclipse/resfet-dashboard) is the
 frontend that is used to communicate with RESFET.
 
+### Installation
+Clone the repository into your desktop:
+```bash
+git clone https://github.com/rice-eclipse/resfet
+```
+
+CD into the directory:  
+```bash
+cd resfet
+```
+
+Install the required dependencies:
+```bash
+sudo ./install_dependencies.sh
+```
+
+Build the software:
+```bash
+./autobuild.sh
+```
+
+Run the software:
+```bash
+build/resfet
+```
+
 ### License
 Copyright (c) Rice Eclipse. All rights reserved.
 

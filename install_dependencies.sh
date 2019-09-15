@@ -7,3 +7,4 @@ make
 sudo make install
 cd ..
 rm bcm2835-1.49.tar.gz
+rm -rf bcm2835-1.49
