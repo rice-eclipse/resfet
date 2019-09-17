@@ -57,18 +57,7 @@ class worker_visitor {
          * @brief Operation corresponding to the beginning of ignition. 
 	 * TODO start a new thread to handle ignition timing
          */
-        virtual void doIgn() = 0;
-
-        worker_visitor() : qw(qw), qn(qn), adcs(adcs), nw_ref(nw_ref)
-                        , start_time_nitr(0)
-                        , pressure_avg(700)
-                        , burn_on(false)
-        {
-        }
-
-        ~worker_visitor() = default;
-
-        void check_ti_list(timestamp_t t, safe_queue<work_queue_item> &qw);
+        void doIgn() = 0;
 };
 
 #endif // WORKER_VISITOR_HPP

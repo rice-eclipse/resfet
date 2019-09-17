@@ -1,17 +1,18 @@
-/*
- * Implementations of methods in queue_visitor_imps.hpp
+/**
+ * @file titan_visitor.cpp
+ * @author Andrew Obler (obj2@rice.edu)
+ * @author Tommy Yuan (ty19@rice.edu)
+ * @brief A visitor for handling commands for Titan.
+ * @version 0.1
+ * @date 2019-09-17
+ * 
+ * @copyright Copyright (c) 2019
  */
 
-#include "titan_visitor.hpp"
-#include <climits>
-#include <unistd.h>
-#include "../final/main_buff_logger.hpp"
+#include "visitor/titan_visitor.hpp"
 
-void titan_visitor::visitProc(work_queue_item& wq_item) {
+void titan_visitor::visitProc(COMMAND c) {
     logger.info("In titan_visitor process case");
-    char c = wq_item.data[0];
-
-    logger.debug("Processing request on worker.");
 
     switch (c) {
         case set_water: {
@@ -53,51 +54,8 @@ void titan_visitor::visitProc(work_queue_item& wq_item) {
             break;
         }
         default: {
-            worker_visitor::visitProc(wq_item);
+	    logger.error("Command not handled: %d\n", c);
             break;
-        }
-    }
-}
-
-void titan_visitor::visitTimed(work_queue_item& wq_item) {
-    // Get the current time
-    now = get_time();
-
-    // Get the timed item that added this:
-    timed_item *ti = wq_item.extra_datap;
-
-    ti->scheduled = now;
-
-    if (ti->buffer != NULL) {
-        worker_visitor::visitTimed(wq_item);
-    } else { // Handle the cases of using ignition stuff.
-        if (ti->action == ign2) { // close MAIN, open VENT, close TANK
-            ti_list->disable(ign2);
-            ti_list->enable(ign3, now);
-
-            logger.info("Writing tank off, vent on, main valve on from timed item.", now);
-
-            bcm2835_gpio_write(MAIN_VALVE, LOW);
-            bcm2835_gpio_write(VENT, LOW); // VENT open is LOW, not HIGH
-            bcm2835_gpio_write(TANK, HIGH); // TANK off is HIGH, not LOW
-
-            start_time_nitr = now;
-            burn_on = true;
-        }
-        if (ti->action == ign3) { // After ign2, close MAIN_VALVE and return to default state
-            logger.info("Ending burn.", now);
-            burn_on = false;
-
-            ti_list->disable(ign3);
-
-            logger.debug("Writing ignition off from timed item.", now);
-            bcm2835_gpio_write(IGN_START, LOW);
-
-            /*
-             * TODO we don't need to close a valve since the ignition valve state
-             * is the same as the default valve state. Is there a potential issue
-             * with overburning?
-             */
         }
     }
 }

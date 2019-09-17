@@ -8,6 +8,9 @@
 #include "logger/logger.hpp"
 #include "config/config.hpp"
 #include "thread/thread.hpp"
+#include "visitor/worker_visitor.hpp"
+#include "visitor/luna_visitor.hpp"
+#include "visitor/titan_visitor.hpp"
 
 // Simple send test for UDP interface
 int main() {
@@ -45,6 +48,9 @@ int main() {
     }
 
     Tcp::ConnSocket coSock;
+    // TODO pick the right visitor
+    worker_visitor visitor;
+
 
     while (1) {
 	    try {
