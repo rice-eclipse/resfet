@@ -30,7 +30,7 @@ int main() {
     }
 
     /* Set up a thread for reading load cells */
-    SENSOR sensors[4] = {SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3};
+    SENSOR sensors[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
     PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4, &sock);
     per_thread.start();
 

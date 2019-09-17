@@ -9,3 +9,6 @@ doc/*
 
 # OS-related files
 .DS_Store
+
+# BCM downloaded files
+bcm2835-*
