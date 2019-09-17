@@ -9,9 +9,43 @@
  * 
  */
 
-#define SET_WATER 19
-#define UNSET_WATER 20
-#define SET_GITVC 21
-#define UNSET_GITVC 22
+#include <stdint.h>
 
-// TODO: valve, ignition
+enum COMMAND: uint8_t {
+    UNSET_VALVE1 = 1,
+    SET_VALVE1,
+    UNSET_VALVE2,
+    SET_VALVE2,
+    UNSET_VALVE3,
+    SET_VALVE3,
+    START_IGNITION,
+    STOP_IGNITION,
+    SET_WATER,
+    UNSET_WATER,
+    SET_GITVC,
+    UNSET_GITVC,
+    LEAK_CHECK,
+    FILL,
+    FILL_IDLE,
+    DEF,
+    NUM_COMMANDS
+};
+
+char command_names[][20] {
+    "UNSET_VALVE1",
+    "SET_VALVE",
+    "UNSET_VALVE",
+    "SET_VALVE",
+    "UNSET_VALVE",
+    "SET_VALVE",
+    "UNSET_IGNITION",
+    "SET_IGNITION",
+    "SET_WATER",
+    "UNSET_WATER",
+    "SET_GITVC",
+    "UNSET_GITVC",
+    "LEAK_CHECK",
+    "FILL",
+    "FILL_IDLE",
+    "DEF"
+};

@@ -13,6 +13,7 @@
 #define __RPI_PINS_HPP
 
 #include <bcm2835.h>
+
 #define ADC_0_CS RPI_V2_GPIO_P1_26
 #define ADC_1_CS RPI_V2_GPIO_P1_24
 #define ADC_2_CS RPI_V2_GPIO_P1_22
