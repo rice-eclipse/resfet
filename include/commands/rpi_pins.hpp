@@ -18,18 +18,24 @@
 #define ADC_1_CS RPI_V2_GPIO_P1_24
 #define ADC_2_CS RPI_V2_GPIO_P1_22
 
-#define MAIN_VALVE RPI_V2_GPIO_P1_11
-#define WATER_VALVE RPI_V2_GPIO_P1_13 // Water
-#define VALVE_3 RPI_V2_GPIO_P1_15
-#define GITVC_VALVE RPI_V2_GPIO_P1_16 // GITVC
+#define VALVE_1 RPI_V2_GPIO_P1_11
+#define VALVE2 RPI_V2_GPIO_P1_13
+#define VALVE3 RPI_V2_GPIO_P1_16
 #define IGN_START RPI_V2_GPIO_P1_15
 
 #define LC_ADC ADC_2_CS
 #define PT_ADC ADC_1_CS
 #define TC_ADC ADC_1_CS
 
+// defines for Luna
+#define MAIN_VALVE VALVE1
+#define WATER_VALVE VALVE2 // Water
+#define GITVC_VALVE VALVE3 // GITVC
+
+
 // defines for Titan
-#define TANK RPI_V2_GPIO_P1_16 // same as GITVC
-#define VENT RPI_V2_GPIO_P1_13 // same as Water
+#define MAIN_VALVE VALVE1
+#define VENT WATER_VALVE
+#define TANK GITVC_VALVE
 
 #endif // __RPI_PINS_HPP

@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 
+#include "logger/logger.hpp"
 #include "commands/tcp_commands.hpp"
 
 extern int engine_type;
@@ -41,11 +42,10 @@ class worker_visitor {
 	 */
         bool burn_on;
 
-        /**
-         * @brief Selects the correct task for the given work queue item and its queue,
-         * 	  and performs it.
-         */
-        void visit(work_queue_item& item);
+	/**
+	 * @brief The logger for this worker.
+	 */
+	Logger logger;
 
 	/**
 	 * @brief Visits a command by performing the function associated
@@ -55,13 +55,9 @@ class worker_visitor {
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 
+	 * TODO start a new thread to handle ignition timing
          */
-        virtual void visitIgn(work_queue_item&);
-
-        /**
-         * Operation for an unknown/unspecified action.
-         */
-        void visitDefault(work_queue_item&);
+        virtual void doIgn() = 0;
 
         worker_visitor() : qw(qw), qn(qn), adcs(adcs), nw_ref(nw_ref)
                         , start_time_nitr(0)
