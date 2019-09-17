@@ -9,45 +9,47 @@
  * @copyright Copyright (c) 2019
  */
 
+#include "commands/rpi_pins.hpp"
 #include "visitor/titan_visitor.hpp"
 
-void titan_visitor::visitProc(COMMAND c) {
+void titan_visitor::visitCommand(COMMAND c) {
     logger.info("In titan_visitor process case");
 
     switch (c) {
-        case set_water: {
-            logger.info("Turning vent on on pin " + std::to_string(WATER_VALVE), now);
+	// TODO use the other names
+        case SET_WATER: {
+            logger.info("Turning vent on using pin %d\n", WATER_VALVE);
             bcm2835_gpio_write(WATER_VALVE, LOW);
             break;
         }
-        case unset_water: {
-            logger.info("Turning vent off on pin " + std::to_string(WATER_VALVE), now);
+        case UNSET_WATER: {
+            logger.info("Turning vent off using pin %d\n", WATER_VALVE);
             bcm2835_gpio_write(WATER_VALVE, HIGH);
             break;
         }
-        case leak_check: {
-            logger.info("Entering Titan Leak Check Preset");
+        case LEAK_CHECK: {
+            logger.info("Entering leak check preset\n");
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
             bcm2835_gpio_write(WATER_VALVE, HIGH);
             bcm2835_gpio_write(GITVC_VALVE, HIGH);
             break;
         }
-        case fill: {
-            logger.info("Entering Titan Fill Preset");
+        case FILL: {
+            logger.info("Entering fill preset\n");
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
             bcm2835_gpio_write(WATER_VALVE, HIGH);
             bcm2835_gpio_write(GITVC_VALVE, LOW);
             break;
         }
-        case fill_idle: {
-            logger.info("Entering Titan Fill Idle Preset");
+        case FILL_IDLE: {
+            logger.info("Entering fill idle preset\n");
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             bcm2835_gpio_write(WATER_VALVE, HIGH);
             bcm2835_gpio_write(GITVC_VALVE, HIGH);
             break;
         }
-        case def: {
-            logger.info("Entering Titan Default Preset");
+        case DEF: {
+            logger.info("Entering default preset\n");
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             bcm2835_gpio_write(WATER_VALVE, LOW);
             bcm2835_gpio_write(GITVC_VALVE, HIGH);

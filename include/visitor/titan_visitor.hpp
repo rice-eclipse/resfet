@@ -30,6 +30,12 @@ class titan_visitor : public worker_visitor {
 	 * 	  with that command.
 	 */
         void visitCommand(COMMAND c) override;
+
+        /**
+         * @brief Operation corresponding to the beginning of ignition. 
+	 * TODO start a new thread to handle ignition timing
+         */
+        void doIgn() override;
         
 	/**
 	 * @brief The constructor for a Titan visitor.

@@ -9,6 +9,9 @@
  * 
  */
 
+#ifndef __TCP_COMMANDS_HPP
+#define __TCP_COMMANDS_HPP
+
 #include <stdint.h>
 
 enum COMMAND: uint8_t {
@@ -49,3 +52,5 @@ char command_names[][20] {
     "FILL_IDLE",
     "DEF"
 };
+
+#endif

@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 
+#include "commands/rpi_pins.hpp"
 #include "visitor/worker_visitor.hpp"
 
 int engine_type;
@@ -23,8 +24,10 @@ bool use_gitvc;
 std::vector<uint8_t> gitvc_times;
 
 worker_visitor::worker_visitor()
-	, burn_on(false)
+	: burn_on(0)
+	, logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
 {
+	// logger = Logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG);
 };
 
 void worker_visitor::visitCommand(COMMAND c) {
@@ -68,7 +71,7 @@ void worker_visitor::visitCommand(COMMAND c) {
             break;
         }
         case STOP_IGNITION: {
-            logger.error("Stopping ignition", now);
+            logger.error("Stopping ignition\n");
 	    // TODO more info
 	    // TODO stop ignition thread
             bcm2835_gpio_write(IGN_START, HIGH);
@@ -79,4 +82,7 @@ void worker_visitor::visitCommand(COMMAND c) {
             break;
         }
     }
+}
+
+void worker_visitor::doIgn() {
 }

@@ -12,6 +12,7 @@
 #ifndef WORKER_VISITOR_HPP
 #define WORKER_VISITOR_HPP
 
+#include <vector>
 #include <stdint.h>
 
 #include "logger/logger.hpp"
@@ -48,16 +49,21 @@ class worker_visitor {
 	Logger logger;
 
 	/**
+	 * @brief The constructor for this base class.
+	 */
+	worker_visitor();
+
+	/**
 	 * @brief Visits a command by performing the function associated
 	 * 	  with that command.
 	 */
-        void visitCommand(COMMAND c) override;
+        virtual void visitCommand(COMMAND c);
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 
 	 * TODO start a new thread to handle ignition timing
          */
-        void doIgn() = 0;
+        virtual void doIgn();
 };
 
 #endif // WORKER_VISITOR_HPP

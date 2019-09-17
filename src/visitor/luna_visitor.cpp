@@ -9,6 +9,7 @@
  * @copyright Copyright (c) 2019
  */
 
+#include "commands/rpi_pins.hpp"
 #include "visitor/luna_visitor.hpp"
 
 luna_visitor::luna_visitor()
@@ -58,6 +59,6 @@ void luna_visitor::visitCommand(COMMAND c) {
     }
 }
 
-void luna_visitor::doIgm() {
+void luna_visitor::doIgn() {
 
 }

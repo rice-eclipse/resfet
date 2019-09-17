@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string.h>
 
-#include "commands/tcp_commands.hpp"
+// #include "commands/tcp_commands.hpp"
 #include "networking/Udp.hpp"
 #include "networking/Tcp.hpp"
 #include "logger/logger.hpp"
@@ -66,8 +66,9 @@ int main() {
 	    try {
 		    while ((read = coSock.recvByte()) != '0') {
 			    // TODO only need this check because we're not synchronized with dashboard
-			    if (read < COMMAND::NUM_COMMANDS)
-				    network_logger.info("Received command: %s (%d)\n", command_names[read], read);
+			    // if (read < COMMAND::NUM_COMMANDS)
+				    //network_logger.info("Received command: %s (%d)\n", command_names[read], read);
+			    network_logger.info("Received command: (%d)\n", read);
 		    }
 	    } catch (Tcp::ClientDisconnectException&) {
 		    network_logger.info("Client disconnected prematurely\n");
