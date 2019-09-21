@@ -9,10 +9,23 @@
  * @copyright Copyright (c) 2019
  */
 
+#include "config/config.hpp"
 #include "commands/rpi_pins.hpp"
 #include "visitor/titan_visitor.hpp"
 
-void titan_visitor::visitCommand(COMMAND c) {
+TitanVisitor::TitanVisitor()
+    : WorkerVisitor()
+{
+
+}
+
+TitanVisitor::TitanVisitor(ConfigMapping& config)
+    : WorkerVisitor(config)
+{
+
+}
+
+void TitanVisitor::visitCommand(COMMAND c) {
     logger.info("In titan_visitor process case");
 
     switch (c) {
@@ -56,7 +69,8 @@ void titan_visitor::visitCommand(COMMAND c) {
             break;
         }
         default: {
-	    logger.error("Command not handled: %d\n", c);
+	        // Defer to super visitor
+            WorkerVisitor::visitCommand(c);
             break;
         }
     }

@@ -11,11 +11,12 @@
 
 #include <stdint.h>
 
+#include "config/config.hpp"
 #include "worker_visitor.hpp"
 #include "commands/tcp_commands.hpp"
 
-#ifndef TITAN_VISITOR_HPP
-#define TITAN_VISITOR_HPP
+#ifndef __TITAN_VISITOR_HPP
+#define __TITAN_VISITOR_HPP
 
 /**
  * @brief The visitor that performs standard tasks for Titan.
@@ -23,25 +24,25 @@
  * Commands are processed unbuffered as they are received over
  * the network.
  */
-class titan_visitor : public worker_visitor {
+class TitanVisitor : private WorkerVisitor {
     public:
-	/**
-	 * @brief Visits a command by performing the function associated
-	 * 	  with that command.
-	 */
+		/**
+		 * @brief Visits a command by performing the function associated
+		 * 	  with that command.
+		 */
         void visitCommand(COMMAND c) override;
-
-        /**
-         * @brief Operation corresponding to the beginning of ignition. 
-	 * TODO start a new thread to handle ignition timing
-         */
-        void doIgn() override;
         
-	/**
-	 * @brief The constructor for a Titan visitor.
-	 * TODO access args read from configs.
-	 */
-        titan_visitor();
+		/**
+		 * @brief Default constructor. Initializes TitanVisitor::config to an
+		 * 		  empty ConfigMapping.
+		 */
+        TitanVisitor();
+
+		/**
+		 * @brief The constructor for a Titan visitor.
+		 * TODO access args read from configs.
+		 */
+        TitanVisitor(ConfigMapping& config);
 };
 
-#endif //TITAN_VISITOR_HPP
+#endif // __TITAN_VISITOR_HPP

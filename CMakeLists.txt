@@ -14,13 +14,13 @@ add_subdirectory(src/adc)
 add_subdirectory(src/circular_buffer)
 add_subdirectory(src/thread)
 add_subdirectory(src/visitor)
+add_subdirectory(src/commands)
 
 # Build the main executable
 add_executable(resfet src/main.cpp)
 
 # Link the libraries
-# target_link_libraries(resfet networking logger time config)
-target_link_libraries(resfet networking logger time config adc circular_buffer thread visitor)
+target_link_libraries(resfet networking logger time config adc circular_buffer thread visitor commands)
 
 # Build the test executables
 add_executable(udp_echo_server test/src/udp_echo_server.cpp)

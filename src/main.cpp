@@ -49,10 +49,10 @@ int main() {
 
     Tcp::ConnSocket coSock;
     // TODO pick the right visitor
-    worker_visitor visitor;
+    WorkerVisitor visitor;
 
 
-    while (1) {
+    while (true) {
 	    try {
 		    coSock = liSock.accept();
 	    } catch (Tcp::OpFailureException&) {

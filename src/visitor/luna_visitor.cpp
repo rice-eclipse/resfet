@@ -9,17 +9,28 @@
  * @copyright Copyright (c) 2019
  */
 
+#include "config/config.hpp"
 #include "commands/rpi_pins.hpp"
 #include "visitor/luna_visitor.hpp"
 
-luna_visitor::luna_visitor()
-	: gitvc_on(0)
-	, gitvc_count(0)
-	{
-	};
+LunaVisitor::LunaVisitor()
+    : gitvc_on(false)
+    , gitvc_count(0)
+    , WorkerVisitor()
+{
+    
+}
 
-void luna_visitor::visitCommand(COMMAND c) {
-    logger.info("In luna_visitor process case");
+LunaVisitor::LunaVisitor(ConfigMapping& config)
+	: gitvc_on(false)
+	, gitvc_count(0)
+    , WorkerVisitor(config)
+{
+
+}
+
+void LunaVisitor::visitCommand(COMMAND c) {
+    logger.info("In LunaVisitor process case");
 
     switch (c) {
         case UNSET_VALVE1: {
@@ -53,12 +64,13 @@ void luna_visitor::visitCommand(COMMAND c) {
             break;
         }
         default: {
-	    logger.error("Command not handled: %d\n", c);
+	        // Defer to super visitor
+            WorkerVisitor::visitCommand(c);
             break;
         }
     }
 }
 
-void luna_visitor::doIgn() {
-
+void LunaVisitor::doGITVC() {
+    // TODO
 }

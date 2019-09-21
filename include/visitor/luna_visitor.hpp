@@ -9,11 +9,12 @@
  * @copyright Copyright (c) 2019
  */
 
-#ifndef LUNA_VISITOR_HPP
-#define LUNA_VISITOR_HPP
+#ifndef __LUNA_VISITOR_HPP
+#define __LUNA_VISITOR_HPP
 
 #include <stdint.h>
 
+#include "config/config.hpp"
 #include "worker_visitor.hpp"
 #include "commands/tcp_commands.hpp"
 
@@ -23,36 +24,41 @@
  * Commands are processed unbuffered as they are received over
  * the network.
  */
-class luna_visitor : public worker_visitor {
+class LunaVisitor : private WorkerVisitor {
     private:
-	/**
-	 * @brief Whether GITVC Is currently on.
-	 */
+		/**
+		 * @brief Whether GITVC Is currently on.
+		 */
         bool gitvc_on;
 
-	/**
-	 * @brief The number of GITVC actuations that have occured.
-	 */
+		/**
+		 * @brief The number of GITVC actuations that have occured.
+		 */
         uint8_t  gitvc_count;
 
     public:
-	/**
-	 * @brief Visits a command by performing the function associated
-	 * 	  with that command.
-	 */
+		/**
+		 * @brief Visits a command by performing the function associated
+		 * 	  with that command.
+		 */
         void visitCommand(COMMAND c) override;
 
-        /**
-         * @brief Operation corresponding to the beginning of ignition. 
-	 * TODO start a new thread to handle ignition timing
-         */
-        void doIgn() override;
+		/**
+		 * @brief Perform GITVC actuations according to the data in WorkerVisitor::config.
+		 */
+		void doGITVC();
 
-	/**
-	 * @brief The constructor for a Luna visitor.
-	 * TODO access args read from configs.
-	 */
-        luna_visitor();
+		/**
+		 * @brief Default constructor. Initializes LunaVisitor::config to an
+		 * 		  empty ConfigMapping.
+		 */
+        LunaVisitor();
+
+		/**
+		 * @brief The constructor for a Luna visitor.
+		 * TODO access args read from configs.
+		 */
+        LunaVisitor(ConfigMapping& config);
 };
 
-#endif //LUNA_VISITOR_HPP
+#endif // __LUNA_VISITOR_HPP

@@ -34,23 +34,25 @@ enum COMMAND: uint8_t {
     NUM_COMMANDS
 };
 
-char command_names[][20] {
-    "UNSET_VALVE1",
-    "SET_VALVE",
-    "UNSET_VALVE",
-    "SET_VALVE",
-    "UNSET_VALVE",
-    "SET_VALVE",
-    "UNSET_IGNITION",
-    "SET_IGNITION",
-    "SET_WATER",
-    "UNSET_WATER",
-    "SET_GITVC",
-    "UNSET_GITVC",
-    "LEAK_CHECK",
-    "FILL",
-    "FILL_IDLE",
-    "DEF"
-};
+// TODO better way to do this than extern?
+extern char* command_names[16];
+// {
+//     "UNSET_VALVE1",
+//     "SET_VALVE",
+//     "UNSET_VALVE",
+//     "SET_VALVE",
+//     "UNSET_VALVE",
+//     "SET_VALVE",
+//     "UNSET_IGNITION",
+//     "SET_IGNITION",
+//     "SET_WATER",
+//     "UNSET_WATER",
+//     "SET_GITVC",
+//     "UNSET_GITVC",
+//     "LEAK_CHECK",
+//     "FILL",
+//     "FILL_IDLE",
+//     "DEF"
+// };
 
 #endif
