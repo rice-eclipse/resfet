@@ -18,7 +18,6 @@
 
 #include "config/config.hpp"
 #include "logger/logger.hpp"
-#include "commands/tcp_commands.hpp"
 
 // Time between checks for ignition state, in milliseconds (see WorkerVisitor::doIgn())
 #define IGN_CHECK_MS 50
@@ -37,6 +36,28 @@
 // extern bool ignition_on;
 // extern bool use_gitvc;
 // extern std::vector<uint8_t> gitvc_times;
+
+enum COMMAND: uint8_t {
+    UNSET_VALVE1 = 1,
+    SET_VALVE1,
+    UNSET_VALVE2,
+    SET_VALVE2,
+    UNSET_VALVE3,
+    SET_VALVE3,
+    START_IGNITION,
+    STOP_IGNITION,
+    SET_WATER,
+    UNSET_WATER,
+    SET_GITVC,
+    UNSET_GITVC,
+    LEAK_CHECK,
+    FILL,
+    FILL_IDLE,
+    DEF,
+    NUM_COMMANDS
+};
+
+extern const char* command_names[NUM_COMMANDS];
 
 /**
  * @brief Defines the superclass for the Luna and Titan visitors.

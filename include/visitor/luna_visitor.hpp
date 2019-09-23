@@ -16,7 +16,6 @@
 
 #include "config/config.hpp"
 #include "worker_visitor.hpp"
-#include "commands/tcp_commands.hpp"
 
 /**
  * @brief The visitor that performs standard tasks for Luna.

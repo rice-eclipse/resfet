@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string.h>
 
-// #include "commands/tcp_commands.hpp"
 #include "networking/Udp.hpp"
 #include "networking/Tcp.hpp"
 #include "logger/logger.hpp"

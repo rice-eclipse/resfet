@@ -16,9 +16,27 @@
 
 #include "config/config.hpp"
 #include "commands/rpi_pins.hpp"
-#include "commands/tcp_commands.hpp"
 #include "time/time.hpp"
 #include "visitor/worker_visitor.hpp"
+
+const char *command_names[NUM_COMMANDS] = {
+    "UNSET_VALVE1",
+    "SET_VALVE",
+    "UNSET_VALVE",
+    "SET_VALVE",
+    "UNSET_VALVE",
+    "SET_VALVE",
+    "UNSET_IGNITION",
+    "SET_IGNITION",
+    "SET_WATER",
+    "UNSET_WATER",
+    "SET_GITVC",
+    "UNSET_GITVC",
+    "LEAK_CHECK",
+    "FILL",
+    "FILL_IDLE",
+    "DEF"
+};
 
 /**
  * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().

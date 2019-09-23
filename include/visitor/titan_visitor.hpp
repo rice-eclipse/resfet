@@ -13,7 +13,6 @@
 
 #include "config/config.hpp"
 #include "worker_visitor.hpp"
-#include "commands/tcp_commands.hpp"
 
 #ifndef __TITAN_VISITOR_HPP
 #define __TITAN_VISITOR_HPP
