@@ -14,8 +14,10 @@
 
 #include <mutex>
 #include <vector>
+#include <time.h>
 #include <stdint.h>
 
+#include "time/time.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
 
@@ -106,7 +108,17 @@ class WorkerVisitor {
 		 * @brief Visits a command by performing the function associated
 		 * 	  with that command.
 		 */
-        virtual void visitCommand(COMMAND c);
+                virtual void visitCommand(COMMAND c);
+
+			
+		/**
+		 * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().
+		 * 
+		 * @param time the total burn time in milliseconds
+		 * @param pBurnOn a pointer to the corresponding WorkerVisitor::burn_on
+		 * @param pMtx a mutex that is locked to check pBurnOn
+		 */
+		static void ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx);
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 

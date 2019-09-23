@@ -1,8 +1,7 @@
 /**
  * @file WorkerVisitor.cpp
  * @author Andrew Obler (obj2@rice.edu)
- * @author Tommy Yuan (ty19@rice.edu)
- * @brief A visitor superclass for handling commands.
+ * @author Tommy Yuan (ty19@rice.edu) * @brief A visitor superclass for handling commands.
  * @version 0.1
  * @date 2019-09-17
  * 
@@ -38,14 +37,7 @@ const char *command_names[NUM_COMMANDS] = {
     "DEF"
 };
 
-/**
- * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().
- * 
- * @param time the total burn time in milliseconds
- * @param pBurnOn a pointer to the corresponding WorkerVisitor::burn_on
- * @param pMtx a mutex that is locked to check pBurnOn
- */
-static void ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx) {
+void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx) {
     // Keep track of ignition time
     set_start_time();
     timestamp_t initTime = get_elapsed_time_ms();

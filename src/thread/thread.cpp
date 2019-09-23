@@ -52,11 +52,11 @@ PeriodicThread::~PeriodicThread() {
 
 // The function that is run by each thread
 static void *threadFunc(adc_reader reader,
-						std::vector<Logger>* loggers,
-						std::vector<circular_buffer>* buffers,
-						uint64_t sleep_time_ns,
-						uint8_t num_sensors,
-						Udp::OutSocket* sock)
+                        std::vector<Logger>* loggers,
+                        std::vector<circular_buffer>* buffers,
+                        uint64_t sleep_time_ns,
+                        uint8_t num_sensors,
+                        Udp::OutSocket* sock)
 {
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
