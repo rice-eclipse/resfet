@@ -24,7 +24,7 @@ LunaVisitor::LunaVisitor()
 LunaVisitor::LunaVisitor(ConfigMapping& config)
 	: gitvc_on(false)
 	, gitvc_count(0)
-    , WorkerVisitor(config)
+	, WorkerVisitor(config)
 {
 
 }
@@ -45,26 +45,26 @@ void LunaVisitor::visitCommand(COMMAND c) {
         }
         case UNSET_VALVE2: {
 	    logger.info("Writing water valve off using pin %d\n", WATER_VALVE);
-            bcm2835_gpio_write(MAIN_VALVE, LOW);
+            bcm2835_gpio_write(WATER_VALVE, LOW);
             break;
         }
         case SET_VALVE2: {
 	    logger.info("Writing water valve on using pin %d\n", WATER_VALVE);
-            bcm2835_gpio_write(MAIN_VALVE, HIGH);
+            bcm2835_gpio_write(WATER_VALVE, HIGH);
             break;
         }
         case UNSET_VALVE3: {
 	    logger.info("Writing GITVC valve off using pin %d\n", GITVC_VALVE);
-            bcm2835_gpio_write(MAIN_VALVE, LOW);
+            bcm2835_gpio_write(GITVC_VALVE, LOW);
             break;
         }
         case SET_VALVE3: {
 	    logger.info("Writing GITVC valve on using pin %d\n", GITVC_VALVE);
-            bcm2835_gpio_write(MAIN_VALVE, HIGH);
+            bcm2835_gpio_write(GITVC_VALVE, HIGH);
             break;
         }
         default: {
-	        // Defer to super visitor
+            // Defer to super visitor
             WorkerVisitor::visitCommand(c);
             break;
         }

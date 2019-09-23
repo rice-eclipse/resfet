@@ -32,10 +32,9 @@
 #define WATER_VALVE VALVE2 // Water
 #define GITVC_VALVE VALVE3 // GITVC
 
-
 // defines for Titan
 #define MAIN_VALVE VALVE1
-#define VENT WATER_VALVE
-#define TANK GITVC_VALVE
+#define VENT_VALVE VALVE2
+#define TANK_VALVE VALVE3
 
 #endif // __RPI_PINS_HPP

@@ -29,47 +29,66 @@ void TitanVisitor::visitCommand(COMMAND c) {
     logger.info("In titan_visitor process case");
 
     switch (c) {
-	// TODO use the other names
-        case SET_WATER: {
-            logger.info("Turning vent on using pin %d\n", WATER_VALVE);
-            bcm2835_gpio_write(WATER_VALVE, LOW);
+        case UNSET_VALVE1: {
+	    logger.info("Writing main valve off using pin %d\n", MAIN_VALVE);
+            bcm2835_gpio_write(MAIN_VALVE, LOW);
             break;
         }
-        case UNSET_WATER: {
-            logger.info("Turning vent off using pin %d\n", WATER_VALVE);
-            bcm2835_gpio_write(WATER_VALVE, HIGH);
+        case SET_VALVE1: {
+	    logger.info("Writing main valve on using pin %d\n", MAIN_VALVE);
+            bcm2835_gpio_write(MAIN_VALVE, HIGH);
+            break;
+        }
+        case SET_VALVE2: {
+            logger.info("Turning vent on using pin %d\n", VENT_VALVE);
+            bcm2835_gpio_write(VENT_VALVE, LOW);
+            break;
+        }
+        case UNSET_VALVE2: {
+            logger.info("Turning vent off using pin %d\n", VENT_VALVE);
+            bcm2835_gpio_write(VENT_VALVE, HIGH);
+            break;
+        }
+        case UNSET_VALVE3: {
+	    logger.info("Writing tank valve off using pin %d\n", TANK_VALVE);
+            bcm2835_gpio_write(MAIN_VALVE, LOW);
+            break;
+        }
+        case SET_VALVE3: {
+	    logger.info("Writing tank valve on using pin %d\n", TANK_VALVE);
+            bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
         case LEAK_CHECK: {
             logger.info("Entering leak check preset\n");
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
-            bcm2835_gpio_write(WATER_VALVE, HIGH);
-            bcm2835_gpio_write(GITVC_VALVE, HIGH);
+            bcm2835_gpio_write(VENT_VALVE, HIGH);
+            bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
         case FILL: {
             logger.info("Entering fill preset\n");
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
-            bcm2835_gpio_write(WATER_VALVE, HIGH);
-            bcm2835_gpio_write(GITVC_VALVE, LOW);
+            bcm2835_gpio_write(VENT_VALVE, HIGH);
+            bcm2835_gpio_write(TANK_VALVE, LOW);
             break;
         }
         case FILL_IDLE: {
             logger.info("Entering fill idle preset\n");
             bcm2835_gpio_write(MAIN_VALVE, LOW);
-            bcm2835_gpio_write(WATER_VALVE, HIGH);
-            bcm2835_gpio_write(GITVC_VALVE, HIGH);
+            bcm2835_gpio_write(VENT_VALVE, HIGH);
+            bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
         case DEF: {
             logger.info("Entering default preset\n");
             bcm2835_gpio_write(MAIN_VALVE, LOW);
-            bcm2835_gpio_write(WATER_VALVE, LOW);
-            bcm2835_gpio_write(GITVC_VALVE, HIGH);
+            bcm2835_gpio_write(VENT_VALVE, LOW);
+            bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
         default: {
-	        // Defer to super visitor
+            // Defer to super visitor
             WorkerVisitor::visitCommand(c);
             break;
         }
