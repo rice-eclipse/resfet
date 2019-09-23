@@ -48,7 +48,7 @@ int main() {
 
     Tcp::ConnSocket coSock;
     // TODO pick the right visitor
-    WorkerVisitor visitor;
+    LunaVisitor visitor;
 
 
     while (true) {
@@ -68,6 +68,7 @@ int main() {
 			    // if (read < COMMAND::NUM_COMMANDS)
 				    //network_logger.info("Received command: %s (%d)\n", command_names[read], read);
 			    network_logger.info("Received command: (%d)\n", read);
+			    visitor.visitCommand((COMMAND)read);
 		    }
 	    } catch (Tcp::ClientDisconnectException&) {
 		    network_logger.info("Client disconnected prematurely\n");

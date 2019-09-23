@@ -86,8 +86,6 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 }
 
 void WorkerVisitor::visitCommand(COMMAND c) {
-    logger.info("In WorkerVisitor process case");
-
     switch (c) {
         case UNSET_VALVE1: {
 	        logger.info("Writing valve 1 off using pin %d\n", VALVE1);

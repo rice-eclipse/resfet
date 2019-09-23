@@ -40,7 +40,7 @@
 // extern std::vector<uint8_t> gitvc_times;
 
 enum COMMAND: uint8_t {
-    UNSET_VALVE1 = 1,
+    UNSET_VALVE1 = 0,
     SET_VALVE1,
     UNSET_VALVE2,
     SET_VALVE2,

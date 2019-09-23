@@ -26,8 +26,6 @@ TitanVisitor::TitanVisitor(ConfigMapping& config)
 }
 
 void TitanVisitor::visitCommand(COMMAND c) {
-    logger.info("In titan_visitor process case");
-
     switch (c) {
         case UNSET_VALVE1: {
 	    logger.info("Writing main valve off using pin %d\n", MAIN_VALVE);

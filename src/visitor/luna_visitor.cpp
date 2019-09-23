@@ -30,8 +30,6 @@ LunaVisitor::LunaVisitor(ConfigMapping& config)
 }
 
 void LunaVisitor::visitCommand(COMMAND c) {
-    logger.info("In LunaVisitor process case");
-
     switch (c) {
         case UNSET_VALVE1: {
 	    logger.info("Writing main valve off using pin %d\n", MAIN_VALVE);
