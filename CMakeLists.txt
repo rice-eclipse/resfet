@@ -16,11 +16,15 @@ add_subdirectory(src/thread)
 add_subdirectory(src/visitor)
 add_subdirectory(src/init)
 
-# Build the main executable
+# Build the main executables
 add_executable(resfet src/main.cpp)
+
+add_executable(mock_resfet src/main.cpp)
+target_compile_definitions(mock_resfet PUBLIC MOCK=1)
 
 # Link the libraries
 target_link_libraries(resfet networking logger time config adc circular_buffer thread visitor init)
+target_link_libraries(mock_resfet networking logger time config adc circular_buffer mock_thread visitor init)
 
 # Build the test executables
 add_executable(udp_echo_server test/src/udp_echo_server.cpp)

@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
     	    return (1);
     }
 
+#ifndef MOCK
     if (!bcm2835_init()) {
 	    std::cerr << "bcm2835_init failed. Are you running as root on RPI?\n";
 	    return (1);
@@ -46,6 +47,7 @@ int main(int argc, char **argv) {
 	    std::cerr << "spi init failed. Are you running as root on RPI?\n";
 	    return (1);
     }
+#endif
 
     // Set up the socket
     // TODO use config file to set port, address
@@ -90,10 +92,14 @@ int main(int argc, char **argv) {
     config_map.getBool("", "engine_type", &engine_type);
     if (engine_type == LUNA) {
 	    visitor = new LunaVisitor(config_map);
+#ifndef MOCK
 	    initialize_pins();
+#endif
     } else {
 	    visitor = new TitanVisitor(config_map);
+#ifndef MOCK
 	    titan_initialize_pins();
+#endif
     }
 
     while (true) {
@@ -113,7 +119,9 @@ int main(int argc, char **argv) {
 			    // if (read < COMMAND::NUM_COMMANDS)
 				    //network_logger.info("Received command: %s (%d)\n", command_names[read], read);
 			    network_logger.info("Received command: (%d)\n", read);
+#ifndef MOCK
 			    visitor->visitCommand((COMMAND)read);
+#endif
 		    }
 	    } catch (Tcp::ClientDisconnectException&) {
 		    network_logger.info("Client disconnected prematurely\n");

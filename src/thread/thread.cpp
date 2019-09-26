@@ -79,8 +79,11 @@ static void *threadFunc(adc_reader reader,
 
 		it_log = loggers->begin();
 		for (it = buffers->begin(); it != buffers->end(); ++it) {
-			// TODO replace count_up with actual sampling
+#ifdef MOCK
 			reading = reader.count_up();
+#else
+			reading = reader.read_item(it->sensor);
+#endif
 			timestamp = get_elapsed_time_us();
 			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
 			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
