@@ -23,7 +23,7 @@
  * Commands are processed unbuffered as they are received over
  * the network.
  */
-class TitanVisitor : private WorkerVisitor {
+class TitanVisitor : public WorkerVisitor {
     public:
 		/**
 		 * @brief Visits a command by performing the function associated

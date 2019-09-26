@@ -21,7 +21,7 @@
  * Commands are processed unbuffered as they are received over
  * the network.
  */
-class LunaVisitor : private WorkerVisitor {
+class LunaVisitor : public WorkerVisitor {
     private:
 		/**
 		 * @brief Whether GITVC Is currently on.
