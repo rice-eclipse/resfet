@@ -38,7 +38,7 @@ static const char* undef_key_format = undef_key_format_str.c_str();
 ConfigMapping::ConfigMapping() {
 	// Create blank private mapping
 	map = std::unordered_map<std::string,
-							 std::unordered_map<std::string, std::string>>();
+							 std::unordered_map<std::string, std::vector<std::string>>>();
 }
 
 ConfigMapping::~ConfigMapping() { /* default destructor */ }
@@ -61,7 +61,7 @@ uint8_t ConfigMapping::readFrom(const char* filename) {
 
 	// Clear out mapping
 	map = std::unordered_map<std::string,
-							 std::unordered_map<std::string, std::string>>();
+							 std::unordered_map<std::string, std::vector<std::string>>>();
 
 	while (!file.eof()) {
 		file.getline(line, MAX_LINE_LENGTH);
@@ -89,11 +89,13 @@ uint8_t ConfigMapping::readFrom(const char* filename) {
 			current_section = header_str; // mark current section
 		// Attempt to match key-value pairs      
 		} else if (sscanf(line, key_value_format, key, value) == 2) {
-			map[current_section][key] = value;
+			if (!isPresent(current_section, key))
+				map[current_section][key] = std::vector<std::string>();
+			map[current_section][key].push_back(value);
 		// Attempt to match an undefined key
 		} else if (sscanf(line, undef_key_format, key) == 1) {
 			// TODO: this is intended for `foo=`, check for just `foo` with no equals sign
-			map[current_section][key] = "";
+			map[current_section][key] = std::vector<std::string>();
 		// No match found, line is malformed; skip it
 		} else {
 			#ifdef __EXTRA_DEBUG_LOG
@@ -132,7 +134,7 @@ uint8_t ConfigMapping::getString(const char* section, const char* key, char* des
 		#endif
 		return 1;
 	}
-	std::strncpy(dest, map[section][key].c_str(), n);
+	std::strncpy(dest, map[section][key][0].c_str(), n);
 	return 0;
 }
 
@@ -145,7 +147,7 @@ uint8_t ConfigMapping::getInt(const char* section, const char* key, uint32_t* de
 		#endif
 		return 1;
 	}
-	*dest = atoi(map[section][key].c_str());
+	*dest = atoi(map[section][key][0].c_str());
 	return 0;
 }
 
@@ -153,5 +155,25 @@ uint8_t ConfigMapping::getBool(const char* section, const char* key, bool* dest)
 	uint32_t temp;
 	getInt(section, key, &temp);
 	*dest = (bool)temp;
+	return 0;
+}
+
+uint8_t ConfigMapping::getVector(const char* section, const char* key, std::vector<uint32_t>* dest) {
+	uint32_t index = 0;
+	std::vector<std::string> v;
+
+	// Make sure the provided key is present
+	if (!isPresent(section, key)) {
+		#ifdef __EXTRA_DEBUG_LOG
+			std::cerr << "Key `" << key << "` not found in section `" << section
+					<< "`" << std::endl;
+		#endif
+		return 1;
+	}
+
+	v = map[section][key];
+
+	for (; index < v.size(); index++)
+		dest->push_back(atoi(v[index].c_str()));
 	return 0;
 }
