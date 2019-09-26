@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string.h>
+#include <bcm2835.h>
 
 #include "networking/Udp.hpp"
 #include "networking/Tcp.hpp"
@@ -10,6 +11,7 @@
 #include "visitor/worker_visitor.hpp"
 #include "visitor/luna_visitor.hpp"
 #include "visitor/titan_visitor.hpp"
+#include "init/init.hpp"
 
 // lol
 #define LUNA 0
@@ -33,6 +35,16 @@ int main(int argc, char **argv) {
     if (config_map.readFrom(argv[1]) != 0) {
 	    printf("Error reading config file!\n");
     	    return (1);
+    }
+
+    if (!bcm2835_init()) {
+	    std::cerr << "bcm2835_init failed. Are you running as root on RPI?\n";
+	    return (1);
+    }
+
+    if (initialize_spi() != 0) {
+	    std::cerr << "spi init failed. Are you running as root on RPI?\n";
+	    return (1);
     }
 
     // Set up the socket
@@ -76,10 +88,13 @@ int main(int argc, char **argv) {
 
     WorkerVisitor *visitor;
     config_map.getBool("", "engine_type", &engine_type);
-    if (engine_type == LUNA)
+    if (engine_type == LUNA) {
 	    visitor = new LunaVisitor(config_map);
-    else
+	    initialize_pins();
+    } else {
 	    visitor = new TitanVisitor(config_map);
+	    titan_initialize_pins();
+    }
 
     while (true) {
 	    try {
