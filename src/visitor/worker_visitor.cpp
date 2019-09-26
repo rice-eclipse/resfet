@@ -34,6 +34,8 @@ const char *command_names[NUM_COMMANDS] = {
     "LEAK_CHECK",
     "FILL",
     "FILL_IDLE",
+    "TAPE_ON",
+    "TAPE_OFF",
     "DEF"
 };
 

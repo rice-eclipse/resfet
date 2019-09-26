@@ -85,6 +85,14 @@ void TitanVisitor::visitCommand(COMMAND c) {
             bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
+	case TAPE_ON: {
+	    logger.info("Turning heating tape on using pin %d\n", HEATING_TAPE);
+            bcm2835_gpio_write(HEATING_TAPE, HIGH);
+	}
+	case TAPE_OFF: {
+	    logger.info("Turning heating tape off using pin %d\n", HEATING_TAPE);
+            bcm2835_gpio_write(HEATING_TAPE, LOW);
+	}
         default: {
             // Defer to super visitor
             WorkerVisitor::visitCommand(c);

@@ -41,6 +41,8 @@ enum COMMAND: uint8_t {
     FILL,
     FILL_IDLE,
     DEF,
+    TAPE_ON,
+    TAPE_OFF,
     NUM_COMMANDS
 };
 
