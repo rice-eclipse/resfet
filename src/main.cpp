@@ -12,10 +12,25 @@
 #include "visitor/titan_visitor.hpp"
 
 // Simple send test for UDP interface
-int main() {
-    Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
+int main(int argc, char **argv) {
+    ConfigMapping config_map;
+
+    if (argc < 2) {
+	// TODO use a logger
+	printf("Please provide the path to the config file\n");
+	return (1);
+    }
+
+    printf("Starting RESFET with config file: %s\n", argv[1]);
+
+    if (config_map.readFrom(argv[1]) != 0) {
+	    printf("Error reading config file!\n");
+    	    return (1);
+    }
 
     // Set up the socket
+    // TODO use config file to set port, address
+    Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
     Udp::OutSocket sock;
     try {
         sock.setDest("127.0.0.1", 1234);
@@ -48,8 +63,8 @@ int main() {
 
     Tcp::ConnSocket coSock;
     // TODO pick the right visitor
-    LunaVisitor visitor;
 
+    LunaVisitor visitor(config_map);
 
     while (true) {
 	    try {

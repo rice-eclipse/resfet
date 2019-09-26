@@ -26,7 +26,13 @@ LunaVisitor::LunaVisitor(ConfigMapping& config)
 	, gitvc_count(0)
 	, WorkerVisitor(config)
 {
-
+	config.getBool("Luna", "use_gitvc", &use_gitvc);
+	config.getInt("Luna", "time_between_gitvc_ms", &time_between_gitvc_ms);
+	config.getInt("Luna", "gitvc_wait_time_ms", &gitvc_wait_time_ms);
+	// TODO get vector of gitvc times
+	logger.debug("use_gitvc: %d\n", use_gitvc);
+	logger.debug("time_between_gitvc_ms: %d\n", time_between_gitvc_ms);
+	logger.debug("gitvc_wait_time_ms: %d\n", gitvc_wait_time_ms);
 }
 
 void LunaVisitor::visitCommand(COMMAND c) {

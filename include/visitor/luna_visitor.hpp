@@ -7,11 +7,9 @@
  * @date 2019-09-17
  * 
  * @copyright Copyright (c) 2019
- */
-
+ */ 
 #ifndef __LUNA_VISITOR_HPP
-#define __LUNA_VISITOR_HPP
-
+#define __LUNA_VISITOR_HPP 
 #include <stdint.h>
 
 #include "config/config.hpp"
@@ -30,10 +28,30 @@ class LunaVisitor : private WorkerVisitor {
 		 */
         bool gitvc_on;
 
+	/**
+	 * @brief Whether this test requires GITVC.
+	 */
+	bool use_gitvc;
+
 		/**
 		 * @brief The number of GITVC actuations that have occured.
 		 */
         uint8_t  gitvc_count;
+
+	/**
+	 * @brief Time delay between starting ignition and starting GITVC.
+	 */
+	uint32_t time_between_gitvc_ms;
+
+	/**
+	 * @brief Time delay between closing the GITVC valve and opening it again.
+	 */
+	uint32_t gitvc_wait_time_ms;
+
+	/**
+	 * @brief Durations that the GITVC valve is kept open.
+	 */
+	std::vector<uint32_t> gitvc_times_ms;
 
     public:
 		/**

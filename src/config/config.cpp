@@ -136,7 +136,7 @@ uint8_t ConfigMapping::getString(const char* section, const char* key, char* des
 	return 0;
 }
 
-uint8_t ConfigMapping::getInt(const char* section, const char* key, int* dest) {
+uint8_t ConfigMapping::getInt(const char* section, const char* key, uint32_t* dest) {
 	// Make sure the provided key is present
 	if (!isPresent(section, key)) {
 		#ifdef __EXTRA_DEBUG_LOG
@@ -146,5 +146,12 @@ uint8_t ConfigMapping::getInt(const char* section, const char* key, int* dest) {
 		return 1;
 	}
 	*dest = atoi(map[section][key].c_str());
+	return 0;
+}
+
+uint8_t ConfigMapping::getBool(const char* section, const char* key, bool* dest) {
+	uint32_t temp;
+	getInt(section, key, &temp);
+	*dest = (bool)temp;
 	return 0;
 }

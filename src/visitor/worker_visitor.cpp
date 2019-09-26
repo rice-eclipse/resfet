@@ -37,6 +37,25 @@ const char *command_names[NUM_COMMANDS] = {
     "DEF"
 };
 
+WorkerVisitor::WorkerVisitor()
+    : config(ConfigMapping())
+    , burn_on(false)
+    , logger("Visitor", "Visitor_Logger", LogLevel::DEBUG)
+{
+
+}
+
+WorkerVisitor::WorkerVisitor(ConfigMapping& config)
+    : config(config)
+    , burn_on(false)
+    , logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
+{
+	config.getInt("Worker", "preignite_ms", &preignite_ms);
+	config.getInt("Worker", "hotflow_ms", &hotflow_ms);
+	logger.debug("preignite_ms: %d\n", preignite_ms);
+	logger.debug("hotflow_ms: %d\n", hotflow_ms);
+}
+
 void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx) {
     // Keep track of ignition time
     set_start_time();
@@ -67,22 +86,6 @@ void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* p
     pMtx->lock();
     *pBurnOn = false;
     pMtx->unlock();
-}
-
-WorkerVisitor::WorkerVisitor()
-    : config(ConfigMapping())
-    , burn_on(false)
-    , logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
-{
-
-}
-
-WorkerVisitor::WorkerVisitor(ConfigMapping& config)
-    : config(config)
-    , burn_on(false)
-    , logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
-{
-
 }
 
 void WorkerVisitor::visitCommand(COMMAND c) {
@@ -148,6 +151,6 @@ void WorkerVisitor::doIgn() {
     burnMtx.unlock();
 
     // Create a monitoring thread to cut off ignition after time has elapsed
-    std::thread t(ignThreadFunc, TEST_IGN_DURATION_MS, &burn_on, &burnMtx);
+    std::thread t(ignThreadFunc, hotflow_ms, &burn_on, &burnMtx);
     t.detach();
 }

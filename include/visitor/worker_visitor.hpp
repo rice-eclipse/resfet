@@ -24,21 +24,6 @@
 // Time between checks for ignition state, in milliseconds (see WorkerVisitor::doIgn())
 #define IGN_CHECK_MS 50
 
-// TODO replace!
-#define TEST_IGN_DURATION_MS 3000
-
-// TODO: move all this to a config file
-// extern int engine_type;
-// extern int time_between_gitvc;
-// extern int gitvc_wait_time;
-// extern int pressure_min;
-// extern int pressure_max;
-// extern int preignite_us;
-// extern int hotflow_us;
-// extern bool ignition_on;
-// extern bool use_gitvc;
-// extern std::vector<uint8_t> gitvc_times;
-
 enum COMMAND: uint8_t {
     UNSET_VALVE1 = 0,
     SET_VALVE1,
@@ -79,12 +64,24 @@ class WorkerVisitor {
 		/**
 		 * @brief Whether the ignition sequence is currently enabled.
 		 */
-        bool burn_on;
+                bool burn_on;
 
 		/**
 		 * @brief Mutex that is used to read/write burn_on across threads.
 		 */
 		std::mutex burnMtx;
+
+		/**
+		 * @brief The amount of time to wait between starting ignition and
+		 *        opening the main valve.
+		 */
+		uint32_t preignite_ms;
+
+		/**
+		 * @brief The duration of the hotflow, from starting ignition to 
+		 *        stopping ignition and closing the main valve.
+		 */
+		uint32_t hotflow_ms;
 
 	public:
 		/**
@@ -123,7 +120,7 @@ class WorkerVisitor {
         /**
          * @brief Operation corresponding to the beginning of ignition. 
          */
-        virtual void doIgn();
+        void doIgn();
 };
 
 #endif // __WORKER_VISITOR_HPP
