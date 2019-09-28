@@ -90,4 +90,6 @@ BUFF_STATUS circular_buffer::pop_data_item(uint8_t *item) {
 	tail++;
 	if (tail >= end)
 		tail = data;
+
+	return BUFF_STATUS::JUSTRIGHT;
 }

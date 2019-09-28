@@ -52,11 +52,11 @@ PeriodicThread::~PeriodicThread() {
 
 // The function that is run by each thread
 static void *threadFunc(adc_reader reader,
-						std::vector<Logger>* loggers,
-						std::vector<circular_buffer>* buffers,
-						uint64_t sleep_time_ns,
-						uint8_t num_sensors,
-						Udp::OutSocket* sock)
+                        std::vector<Logger>* loggers,
+                        std::vector<circular_buffer>* buffers,
+                        uint64_t sleep_time_ns,
+                        uint8_t num_sensors,
+                        Udp::OutSocket* sock)
 {
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
@@ -79,8 +79,11 @@ static void *threadFunc(adc_reader reader,
 
 		it_log = loggers->begin();
 		for (it = buffers->begin(); it != buffers->end(); ++it) {
-			// TODO replace count_up with actual sampling
+#ifdef MOCK
 			reading = reader.count_up();
+#else
+			reading = reader.read_item(it->sensor);
+#endif
 			timestamp = get_elapsed_time_us();
 			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
 			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);

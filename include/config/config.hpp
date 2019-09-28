@@ -11,6 +11,7 @@
 #ifndef __CONFIG_HPP
 #define __CONFIG_HPP
 
+#include <vector>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -59,7 +60,7 @@ class ConfigMapping {
  		 * the map would have map["FOO"]["bar"] = "baz".
 		 */
 		std::unordered_map<std::string,
-						   std::unordered_map<std::string, std::string>> map;
+						   std::unordered_map<std::string, std::vector<std::string>>> map;
 	
 	public:
 		/**
@@ -121,7 +122,27 @@ class ConfigMapping {
 		 * @param dest 	  an int buffer into which to store the value
 		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
 		 */
-		uint8_t getInt(const char* section, const char* key, int* dest);
+		uint8_t getInt(const char* section, const char* key, uint32_t* dest);
+
+		/**
+		 * @brief Get a value from the map as a boolean.
+		 * 
+		 * @param section the section from which to get the value
+		 * @param key 	  the key corresponding to the desired value
+		 * @param dest 	  a boolean address into which to store the value
+		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
+		 */
+		uint8_t getBool(const char* section, const char* key, bool* dest);
+
+		/**
+		 * @brief Get a vector of numbers from the map.
+		 * 
+		 * @param section the section from which to get the value
+		 * @param key 	  the key corresponding to the desired value
+		 * @param dest 	  a vector address into which to store the value
+		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
+		 */
+		uint8_t getVector(const char* section, const char* key, std::vector<uint32_t>* dest);
 };
 
 #endif
