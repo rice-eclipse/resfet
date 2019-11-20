@@ -66,7 +66,7 @@ class WorkerVisitor {
 		/**
 		 * @brief Whether the ignition sequence is currently enabled.
 		 */
-                bool burn_on;
+        bool burn_on;
 
 		/**
 		 * @brief Mutex that is used to read/write burn_on across threads.
@@ -107,9 +107,13 @@ class WorkerVisitor {
 		 * @brief Visits a command by performing the function associated
 		 * 	  with that command.
 		 */
-                virtual void visitCommand(COMMAND c);
+        virtual void visitCommand(COMMAND c);
 
-			
+		/**
+		 * @brief Logger that is used by ignThreadFunc for info messages.
+		 */
+		static Logger ignThreadLogger;
+
 		/**
 		 * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().
 		 * 

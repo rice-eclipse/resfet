@@ -15,6 +15,7 @@
 
 #include "config/config.hpp"
 #include "commands/rpi_pins.hpp"
+#include "logger/logger.hpp"
 #include "time/time.hpp"
 #include "visitor/worker_visitor.hpp"
 
@@ -58,7 +59,11 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 	logger.debug("hotflow_ms: %d\n", hotflow_ms);
 }
 
+Logger WorkerVisitor::ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
+
 void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx) {
+    ignThreadLogger.info("Ignition monitor thread started\n");
+
     // Keep track of ignition time
     set_start_time();
     timestamp_t initTime = get_elapsed_time_ms();
@@ -75,7 +80,8 @@ void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* p
             // Main thread has indicated an ignition stop
             bcm2835_gpio_write(IGN_START, HIGH);
             pMtx->unlock();
-            break;
+            ignThreadLogger.info("Emergency stop indicated, ending burn\n");
+            return;
         }
         pMtx->unlock();
         // Sleep so we're not checking every cycle
@@ -88,6 +94,7 @@ void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* p
     pMtx->lock();
     *pBurnOn = false;
     pMtx->unlock();
+    ignThreadLogger.info("Burn time elapsed, burn has ended\n");
 }
 
 void WorkerVisitor::visitCommand(COMMAND c) {
@@ -124,7 +131,6 @@ void WorkerVisitor::visitCommand(COMMAND c) {
         }
         case START_IGNITION: {
             logger.info("Starting ignition\n");
-            // TODO more info
             doIgn();
             break;
         }
@@ -134,8 +140,8 @@ void WorkerVisitor::visitCommand(COMMAND c) {
             burn_on = false;
             burnMtx.unlock();
 
-            // TODO: shouldn't need to do this, the thread should detect it
-            // bcm2835_gpio_write(IGN_START, HIGH);
+            // NOTE: in theory, we don't need to do this, but better safe than sorry
+            bcm2835_gpio_write(IGN_START, HIGH);
 
             // TODO close valve
             break;
@@ -148,6 +154,7 @@ void WorkerVisitor::visitCommand(COMMAND c) {
 }
 
 void WorkerVisitor::doIgn() {
+    bcm2835_gpio_write(IGN_START, LOW); // TODO: LOW or HIGH?
     burnMtx.lock();
     burn_on = true;
     burnMtx.unlock();
