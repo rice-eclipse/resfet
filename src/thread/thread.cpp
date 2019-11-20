@@ -8,11 +8,13 @@
  * @copyright Copyright (c) 2019
  */
 
+#include <bcm2835.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <vector>
 
 #include "adc/adc.hpp"
+#include "commands/rpi_pins.hpp"
 #include "logger/logger.hpp"
 #include "thread/thread.hpp"
 #include "time/time.hpp"
@@ -27,6 +29,13 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 							  Udp::OutSocket *sock)
 {
 	this->reader = adc_reader();
+
+	// TODO this is hard coded for the load cells
+	// 0 1 3 4 for load cells
+	this->reader.add_adc_info(0, (bcm2835SPIChipSelect) 25, 0);
+	this->reader.add_adc_info(1, (bcm2835SPIChipSelect) 25, 1);
+	this->reader.add_adc_info(2, (bcm2835SPIChipSelect) 25, 3);
+	this->reader.add_adc_info(3, (bcm2835SPIChipSelect) 25, 4);
 
 	// TODO assume we don't sleep for more than 1s
 	// TODO sleep time seems to be twice as long as it should be

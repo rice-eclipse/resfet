@@ -59,9 +59,13 @@ uint16_t adc_reader::read_item(uint8_t sensor_index) {
 	char write_buf[3] = {channel, 0, 0};
 	char read_buf[3] = {0, 0, 0};
 
-	bcm2835_spi_chipSelect(info.cs_pin);
+	// bcm2835_spi_chipSelect(info.cs_pin);
+	bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
+	bcm2835_gpio_write(info.cs_pin, LOW);
 
 	bcm2835_spi_transfernb(write_buf, read_buf, 3);
+
+	bcm2835_gpio_write(info.cs_pin, HIGH);
 
 	/* Annoying formatting because the return value is split across two bytes. */
 	read_buf[2] = (uint8_t)(((read_buf[2] >> 2) | ((read_buf[1] & 0x03) << 6)) & 0xFF);
@@ -76,7 +80,7 @@ uint16_t adc_reader::count_up() {
 	return num++;
 }
 
-void adc_reader::add_adc_info(uint8_t sensor_index, RPiGPIOPin cs_pin, uint8_t channel) {
+void adc_reader::add_adc_info(uint8_t sensor_index, bcm2835SPIChipSelect cs_pin, uint8_t channel) {
 	if (sensor_index < 0 || sensor_index > SENSOR::NUM_SENSORS)
 		return;
 
