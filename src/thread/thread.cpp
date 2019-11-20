@@ -30,12 +30,17 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 {
 	this->reader = adc_reader();
 
+	// Register each sensor with the ADC reader
+	for (int i = 0; i < num_sensors; i++) {
+		this->reader.add_adc_info(sensors[i], SENSOR_PINS[sensors[i]], SENSOR_CHANNELS[sensors[i]]);
+	}
+
 	// TODO this is hard coded for the load cells
 	// 0 1 3 4 for load cells
-	this->reader.add_adc_info(0, (bcm2835SPIChipSelect) 25, 0);
-	this->reader.add_adc_info(1, (bcm2835SPIChipSelect) 25, 1);
-	this->reader.add_adc_info(2, (bcm2835SPIChipSelect) 25, 3);
-	this->reader.add_adc_info(3, (bcm2835SPIChipSelect) 25, 4);
+	// this->reader.add_adc_info(0, (bcm2835SPIChipSelect) 25, 0);
+	// this->reader.add_adc_info(1, (bcm2835SPIChipSelect) 25, 1);
+	// this->reader.add_adc_info(2, (bcm2835SPIChipSelect) 25, 3);
+	// this->reader.add_adc_info(3, (bcm2835SPIChipSelect) 25, 4);
 
 	// TODO assume we don't sleep for more than 1s
 	// TODO sleep time seems to be twice as long as it should be

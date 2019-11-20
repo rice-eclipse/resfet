@@ -14,6 +14,42 @@
 
 #include "adc/adc.hpp"
 
+/**
+ * @brief The pins of the respective ADCs for each sensor.
+ */
+RPiGPIOPin SENSOR_PINS[SENSOR::NUM_SENSORS] = {
+	// LCs
+	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
+	
+	// PTs
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
+
+	// TCs
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24
+};
+
+uint8_t SENSOR_CHANNELS[NUM_SENSORS] = {
+	0, // LC_MAIN
+	1, // LC1
+	3, // LC2
+	4, // LC3
+
+	2, // PT_COMBUSTION
+	1, // PT_INJECTOR
+	0, // PT_FEED
+
+	4, // TC1
+	5, // TC2
+	6  // TC3
+};
+
 uint16_t SENSOR_FREQS[NUM_SENSORS] = {
 	2000,
 	2000,
@@ -80,7 +116,7 @@ uint16_t adc_reader::count_up() {
 	return num++;
 }
 
-void adc_reader::add_adc_info(uint8_t sensor_index, bcm2835SPIChipSelect cs_pin, uint8_t channel) {
+void adc_reader::add_adc_info(uint8_t sensor_index, RPiGPIOPin cs_pin, uint8_t channel) {
 	if (sensor_index < 0 || sensor_index > SENSOR::NUM_SENSORS)
 		return;
 

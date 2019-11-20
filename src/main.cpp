@@ -71,10 +71,23 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    /* Set up a thread for reading load cells */
-    SENSOR sensors[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
-    PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4, &sock);
-    per_thread.start();
+    // Set up a thread for reading load cells
+    SENSOR lcs[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
+    uint16_t lcFreq = SENSOR_FREQS[SENSOR::LC_MAIN];
+    PeriodicThread lcThread(lcFreq, lcs, 4, &sock);
+    lcThread.start();
+
+    // Set up a thread for reading pressure transducers
+    SENSOR pts[3] = { SENSOR::PT_COMBUSTION, SENSOR::PT_INJECTOR, SENSOR::PT_FEED };
+    uint16_t ptFreq = SENSOR_FREQS[SENSOR::PT_COMBUSTION];
+    PeriodicThread ptThread(ptFreq, pts, 3, &sock);
+    ptThread.start();
+
+    // Set up a thread for reading thermocouples
+    SENSOR tcs[3] = { SENSOR::TC1, SENSOR::TC2, SENSOR::TC3 };
+    uint16_t tcFreq = SENSOR_FREQS[SENSOR::TC1];
+    PeriodicThread tcThread(tcFreq, tcs, 3, &sock);
+    tcThread.start();
 
     Tcp::ListenSocket liSock;
     try {

@@ -19,12 +19,12 @@
  * 	  an ADC through SPI.
  */
 struct adc_info {
-	bcm2835SPIChipSelect cs_pin;
+	RPiGPIOPin cs_pin;
 	uint8_t channel;
 
 	adc_info() = default;
 
-	adc_info(bcm2835SPIChipSelect cs_pin, uint8_t channel)
+	adc_info(RPiGPIOPin cs_pin, uint8_t channel)
 		: cs_pin(cs_pin)
 		, channel(channel)
 		{};
@@ -51,7 +51,8 @@ enum SENSOR: uint8_t {
 		NUM_SENSORS
 };
 
-
+extern RPiGPIOPin SENSOR_PINS[NUM_SENSORS];
+extern uint8_t SENSOR_CHANNELS[NUM_SENSORS];
 extern uint16_t SENSOR_FREQS[NUM_SENSORS];
 extern char SENSOR_NAMES[NUM_SENSORS][20];
 
@@ -128,7 +129,7 @@ class adc_reader {
 		 * @param cs_pin The chip select pin used for this sensor.
 		 * @param channel The adc channel used for this sensor.
 		 */
-		void add_adc_info(uint8_t sensor_index, bcm2835SPIChipSelect cs_pin, uint8_t channel);
+		void add_adc_info(uint8_t sensor_index, RPiGPIOPin cs_pin, uint8_t channel);
 };
 
 #endif
