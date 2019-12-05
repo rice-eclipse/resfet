@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <mutex>
 #include <iostream>
 #include <string.h>
 #include <bcm2835.h>
@@ -55,8 +56,9 @@ int main(int argc, char **argv) {
     config_map.getInt("Network", "port", &port);
     Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
     Udp::OutSocket sock;
+    std::mutex sockMtx;
     try {
-        sock.setDest(address, port);
+        sock.setDest(address, port);  
     } catch (Udp::OpFailureException& ofe) {
         network_logger.error("Could not set destination\n");
         return -1;
@@ -71,23 +73,41 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    // Set up a thread for all the sensors TODO -- don't do this, fam
+    SENSOR allSensors[10] = {
+        SENSOR::LC_MAIN,
+	SENSOR::LC1,
+	SENSOR::LC2,
+	SENSOR::LC3,
+	SENSOR::PT_COMBUSTION,
+	SENSOR::PT_INJECTOR,
+	SENSOR::PT_FEED,
+	SENSOR::TC1,
+	SENSOR::TC2,
+	SENSOR::TC3
+    };
+    //uint16_t freq = SENSOR_FREQS[SENSOR::TC1]; // use lowest common denominator for now
+    uint16_t freq = SENSOR_FREQS[SENSOR::LC_MAIN]; // TODO removing this causes undefined references???
+    PeriodicThread thread(1000, allSensors, 10, &sock, &sockMtx);
+    thread.start();
+
     // Set up a thread for reading load cells
-    SENSOR lcs[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
-    uint16_t lcFreq = SENSOR_FREQS[SENSOR::LC_MAIN];
-    PeriodicThread lcThread(lcFreq, lcs, 4, &sock);
-    lcThread.start();
+    //SENSOR lcs[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
+    //uint16_t lcFreq = SENSOR_FREQS[SENSOR::LC_MAIN];
+    //PeriodicThread lcThread(lcFreq, lcs, 4, &sock, &sockMtx);
+    //lcThread.start();
 
     // Set up a thread for reading pressure transducers
-    SENSOR pts[3] = { SENSOR::PT_COMBUSTION, SENSOR::PT_INJECTOR, SENSOR::PT_FEED };
-    uint16_t ptFreq = SENSOR_FREQS[SENSOR::PT_COMBUSTION];
-    PeriodicThread ptThread(ptFreq, pts, 3, &sock);
-    ptThread.start();
+    //SENSOR pts[3] = { SENSOR::PT_COMBUSTION, SENSOR::PT_INJECTOR, SENSOR::PT_FEED };
+    //uint16_t ptFreq = SENSOR_FREQS[SENSOR::PT_COMBUSTION];
+    //PeriodicThread ptThread(ptFreq, pts, 3, &sock, &sockMtx);
+    //ptThread.start();
 
     // Set up a thread for reading thermocouples
-    SENSOR tcs[3] = { SENSOR::TC1, SENSOR::TC2, SENSOR::TC3 };
-    uint16_t tcFreq = SENSOR_FREQS[SENSOR::TC1];
-    PeriodicThread tcThread(tcFreq, tcs, 3, &sock);
-    tcThread.start();
+    //SENSOR tcs[3] = { SENSOR::TC1, SENSOR::TC2, SENSOR::TC3 };
+    //uint16_t tcFreq = SENSOR_FREQS[SENSOR::TC1];
+    //PeriodicThread tcThread(tcFreq, tcs, 3, &sock, &sockMtx);
+    //tcThread.start();
 
     Tcp::ListenSocket liSock;
     try {

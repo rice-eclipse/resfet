@@ -11,6 +11,7 @@
 #ifndef __THREAD_HPP
 #define __THREAD_HPP
 
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -66,6 +67,11 @@ class PeriodicThread {
 		 */
 		Udp::OutSocket* sock;
 
+		/**
+		 * @brief Mutex for sock, to avoid clashing sends from multiple threads.
+		 */
+		std::mutex* sockMtx;
+
 	public:
 		/**
 		 * @brief The constructor for a Periodic Thread. The thread uses an
@@ -78,7 +84,7 @@ class PeriodicThread {
 		 * @param num_sensors the number of sensors to be read
 		 */
 		PeriodicThread(uint16_t frequency_hz, SENSOR *sensors,
-					   uint8_t num_sensors, Udp::OutSocket *sock);
+					   uint8_t num_sensors, Udp::OutSocket *sock, std::mutex* sockMtx);
 
 		/**
 		 * @brief Destroy this thread. Frees memory associated with

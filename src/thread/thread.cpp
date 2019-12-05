@@ -9,6 +9,7 @@
  */
 
 #include <bcm2835.h>
+#include <mutex>
 #include <pthread.h>
 #include <stdint.h>
 #include <vector>
@@ -26,7 +27,8 @@
 PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 							  SENSOR *sensors,
 							  uint8_t num_sensors,
-							  Udp::OutSocket *sock)
+							  Udp::OutSocket *sock,
+							  std::mutex* sockMtx)
 {
 	this->reader = adc_reader();
 
@@ -57,6 +59,7 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 
 	this->num_sensors = num_sensors;
 	this->sock = sock;
+	this->sockMtx = sockMtx;
 }
 
 PeriodicThread::~PeriodicThread() {
@@ -70,7 +73,8 @@ static void *threadFunc(adc_reader reader,
                         std::vector<circular_buffer>* buffers,
                         uint64_t sleep_time_ns,
                         uint8_t num_sensors,
-                        Udp::OutSocket* sock)
+                        Udp::OutSocket* sock,
+			std::mutex* sockMtx)
 {
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
@@ -107,13 +111,25 @@ static void *threadFunc(adc_reader reader,
 			if (status == BUFF_STATUS::FULL) {
 				it->get_data(&b, BUFF_SIZE);
 				it_log->data(b, BUFF_SIZE);
+				
+				// Send the data over UDP
+				sockMtx->lock();
 				if (sock != NULL && sock->getFd() != -1)
-					sock->sendBuf(b, BUFF_SIZE);
+					try {
+						sock->sendBuf(b, BUFF_SIZE);
+					} catch (Udp::OpFailureException&) {
+						printf("Op failure!\n");
+					} catch (Udp::BadOutSocketException&) {
+						printf("Bad socket!\n");
+					} catch (...) {
+						printf("Unknown error!\n");
+					}
 				else {
 					printf("Problem with socket\n");
 					return NULL;
 				}
-				// printf("Sent over udp\n");
+				sockMtx->unlock();
+				//printf("Sent over udp\n");
 			}
 			old_timestamp = timestamp;
 			it_log++;
@@ -131,6 +147,7 @@ void PeriodicThread::start() {
 							  this->buffers,
 							  this->sleep_time_ns,
 							  this->num_sensors,
-							  this->sock);
+							  this->sock,
+							  this->sockMtx);
 	core_thread.detach();
 }
