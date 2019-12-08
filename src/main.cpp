@@ -1,7 +1,10 @@
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <iostream>
 #include <string.h>
+#include <thread>
 #include <bcm2835.h>
 
 #include "networking/Udp.hpp"
@@ -17,6 +20,10 @@
 // lol
 #define LUNA 0
 #define TITAN 1
+
+// Global lock for ignition state
+// TODO: move this to a more appropriate place?
+std::atomic<bool> ignitionOn;      
 
 // Simple send test for UDP interface
 int main(int argc, char **argv) {
@@ -49,6 +56,9 @@ int main(int argc, char **argv) {
 	    return (1);
     }
 #endif
+
+    // Mark ignition as off
+    ignitionOn.store(false);
 
     // Set up the socket
     // TODO use config file to set port, address

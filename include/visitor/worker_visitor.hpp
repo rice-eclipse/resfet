@@ -48,6 +48,9 @@ enum COMMAND: uint8_t {
 
 extern const char* command_names[NUM_COMMANDS];
 
+// Defined in main.cpp
+extern std::atomic<bool> ignitionOn;
+
 /**
  * @brief Defines the superclass for the Luna and Titan visitors.
  * 	  A visitor "visits" a received command performs the appropriate
@@ -62,16 +65,6 @@ class WorkerVisitor {
 		 * 		  and burn time.
 		 */
 		ConfigMapping config;
-
-		/**
-		 * @brief Whether the ignition sequence is currently enabled.
-		 */
-                std::atomic<bool> burn_on;
-
-		/**
-		 * @brief Mutex that is used to read/write burn_on across threads.
-		 */
-		//std::mutex burnMtx;
 
 		/**
 		 * @brief The amount of time to wait between starting ignition and
@@ -122,7 +115,7 @@ class WorkerVisitor {
 		 * @param pBurnOn a pointer to the corresponding WorkerVisitor::burn_on
 		 * @param pMtx a mutex that is locked to check pBurnOn
 		 */
-		static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, std::atomic<bool>* burn_on);
+		static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime);
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 
