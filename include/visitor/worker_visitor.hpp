@@ -113,7 +113,7 @@ class WorkerVisitor {
 		/**
 		 * @brief Logger that is used by ignThreadFunc for info messages.
 		 */
-		static Logger ignThreadLogger;
+		//static Logger ignThreadLogger;
 
 		/**
 		 * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().
@@ -123,7 +123,7 @@ class WorkerVisitor {
 		 * @param pBurnOn a pointer to the corresponding WorkerVisitor::burn_on
 		 * @param pMtx a mutex that is locked to check pBurnOn
 		 */
-		static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff);
+		//static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff);
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 

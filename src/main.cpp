@@ -69,6 +69,9 @@ int main(int argc, char **argv) {
     // Mark ignition as off
     ignitionOn.store(false);
 
+    // Mark no pressure shutoff
+    pressureShutoff.store(false);
+
     // Set up the socket
     config_map.getString("Network", "address", address, 16);
     config_map.getInt("Network", "port", &port);

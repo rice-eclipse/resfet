@@ -73,9 +73,9 @@ PeriodicThread::~PeriodicThread() {
 }
 
 // Perform a conversion from a raw ADC reading value to a calibrated value
-static double convertReading(uint16_t reading, double slope, double yint) {
-        return slope * reading + yint;
-}
+//static double convertReading(uint16_t reading, double slope, double yint) {
+//        return slope * reading + yint;
+//}
 
 // The function that is run by each thread
 static void *threadFunc(adc_reader reader,
@@ -119,10 +119,11 @@ static void *threadFunc(adc_reader reader,
 			reading = reader.read_item(it->sensor);
 #endif
                         // Include the reading in the running average
-                        combAvg = combAvg * 0.95 + convertReading(reading, pressureSlope, pressureYint) * 0.05;
+			double converted = pressureSlope * reading + pressureYint;
+                        combAvg = combAvg * 0.95 + converted * 0.05;
                         
                         // If the average is beyond the cutoff threshold, signal the cutoff
-                        if (combAvg > pressureMax || combAvg < pressureMin) {
+                        if (!pressureShutoff.load() && (combAvg > pressureMax || combAvg < pressureMin)) {
                                 pressureShutoff.store(true);
                         }
                         

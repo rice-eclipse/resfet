@@ -56,14 +56,15 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 {
 	config.getInt("Worker", "preignite_ms", &preignite_ms);
 	config.getInt("Worker", "hotflow_ms", &hotflow_ms);
-    config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
+        config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
 	logger.debug("preignite_ms: %d\n", preignite_ms);
 	logger.debug("hotflow_ms: %d\n", hotflow_ms);
+	logger.debug("shutoff_enabled: %d\n", enableShutoff);
 }
 
-Logger WorkerVisitor::ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
+static Logger ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
 
-void WorkerVisitor::ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff) {
+static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff) {
     ignThreadLogger.info("Ignition monitor thread started\n");
 
     // Whether the main valve is open; should open after preigniteTime elapses
@@ -170,6 +171,7 @@ void WorkerVisitor::visitCommand(COMMAND c) {
 
 void WorkerVisitor::doIgn() {
     ignitionOn.store(true);
+    pressureShutoff.store(false);
     bcm2835_gpio_write(IGN_START, HIGH);
 
     // Create a monitoring thread to cut off ignition after time has elapsed
