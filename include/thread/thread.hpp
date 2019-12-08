@@ -11,7 +11,7 @@
 #ifndef __THREAD_HPP
 #define __THREAD_HPP
 
-#include <mutex>
+#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -19,6 +19,9 @@
 #include "circular_buffer/circular_buffer.hpp"
 #include "logger/logger.hpp"
 #include "networking/Udp.hpp"
+
+// Defined in main.cpp
+extern std::atomic<bool> pressureShutoff;
 
 class PeriodicThread {
 	private:
@@ -56,21 +59,38 @@ class PeriodicThread {
 
 		/**
 		 * @brief The total number of sensors connected to the controller.
-		 * 
-		 * TODO: unused?
 		 */
 		uint8_t num_sensors;
+                
+                /**
+                 * @brief Upper limit for pressure values (calibrated, not raw), above which a
+                 *        safety shutoff will occur.
+                 */
+                double pressureMax;
+                
+                /**
+                 * @brief Lower limit for pressure values (calibrated, not raw), above which a
+                 *        safety shutoff will occur.
+                 */
+                double pressureMin;
+                
+                /**
+                 * @brief Slope for the pressure calibration function, used to test for a
+                 *        safety shutoff.
+                 */
+                double pressureSlope;
+                
+                /**
+                 * @brief Y-intercept for the pressure calibration function, used to test
+                 *        for a safety shutoff.
+                 */
+                double pressureYint;
 
 		/**
 		 * @brief The UDP output socket through which data will be sent as it
-		 * 		  is logged.
+		 *        is logged.
 		 */
 		Udp::OutSocket* sock;
-
-		/**
-		 * @brief Mutex for sock, to avoid clashing sends from multiple threads.
-		 */
-		std::mutex* sockMtx;
 
 	public:
 		/**
@@ -83,8 +103,14 @@ class PeriodicThread {
 		 * @param sensors the list of sensors to sample
 		 * @param num_sensors the number of sensors to be read
 		 */
-		PeriodicThread(uint16_t frequency_hz, SENSOR *sensors,
-					   uint8_t num_sensors, Udp::OutSocket *sock, std::mutex* sockMtx);
+		PeriodicThread(uint16_t frequency_hz,
+                               SENSOR *sensors,
+                               uint8_t num_sensors,
+                               double pressureMax,
+                               double pressureMin,
+                               double pressureSlope,
+                               double pressureYint,
+                               Udp::OutSocket *sock);
 
 		/**
 		 * @brief Destroy this thread. Frees memory associated with

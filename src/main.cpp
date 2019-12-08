@@ -21,9 +21,18 @@
 #define LUNA 0
 #define TITAN 1
 
+// Defaults for pressure cutoff
+#define DEFAULT_PRESSURE_MAX 800
+#define DEFAULT_PRESSURE_MIN 300
+#define DEFAULT_PRESSURE_SLOPE -0.3
+#define DEFAULT_PRESSURE_YINT 1108.1
+
 // Global lock for ignition state
 // TODO: move this to a more appropriate place?
-std::atomic<bool> ignitionOn;      
+std::atomic<bool> ignitionOn;   
+
+// Global lock for extreme low/high pressure, for safety shutoff
+std::atomic<bool> pressureShutoff;   
 
 // Simple send test for UDP interface
 int main(int argc, char **argv) {
@@ -61,7 +70,6 @@ int main(int argc, char **argv) {
     ignitionOn.store(false);
 
     // Set up the socket
-    // TODO use config file to set port, address
     config_map.getString("Network", "address", address, 16);
     config_map.getInt("Network", "port", &port);
     Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
@@ -87,18 +95,32 @@ int main(int argc, char **argv) {
     // TODO: use a different thread for each type of sensor
     SENSOR allSensors[10] = {
         SENSOR::LC_MAIN,
-	SENSOR::LC1,
-	SENSOR::LC2,
-	SENSOR::LC3,
-	SENSOR::PT_COMBUSTION,
-	SENSOR::PT_INJECTOR,
-	SENSOR::PT_FEED,
-	SENSOR::TC1,
-	SENSOR::TC2,
-	SENSOR::TC3
+        SENSOR::LC1,
+        SENSOR::LC2,
+        SENSOR::LC3,
+        SENSOR::PT_COMBUSTION,
+        SENSOR::PT_INJECTOR,
+        SENSOR::PT_FEED,
+        SENSOR::TC1,
+        SENSOR::TC2,
+        SENSOR::TC3
     };
+    
+    // Retrieve pressure cutoff info from the map
+    double pressureMax = DEFAULT_PRESSURE_MAX,
+           pressureMin = DEFAULT_PRESSURE_MIN,
+           pressureSlope = DEFAULT_PRESSURE_SLOPE,
+           pressureYint = DEFAULT_PRESSURE_YINT;
+    int readAll = config_map.getDouble("Pressure", "pressure_max", &pressureMax) +
+                  config_map.getDouble("Pressure", "pressure_min", &pressureMin) +
+                  config_map.getDouble("Pressure", "pressure_slope", &pressureSlope) +
+                  config_map.getDouble("Pressure", "pressure_yint", &pressureYint);
+    if (readAll != 0) {
+        printf("[main] WARNING: failed to read pressure shutoff values, using defaults\n");
+    }
+    
     uint16_t freq = SENSOR_FREQS[SENSOR::LC_MAIN]; // TODO removing this causes undefined references???
-    PeriodicThread thread(1000, allSensors, 10, &sock, &sockMtx);
+    PeriodicThread thread(1000, allSensors, 10, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
     thread.start();
 
     Tcp::ListenSocket liSock;

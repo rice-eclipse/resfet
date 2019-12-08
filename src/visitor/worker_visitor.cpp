@@ -56,13 +56,14 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 {
 	config.getInt("Worker", "preignite_ms", &preignite_ms);
 	config.getInt("Worker", "hotflow_ms", &hotflow_ms);
+    config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
 	logger.debug("preignite_ms: %d\n", preignite_ms);
 	logger.debug("hotflow_ms: %d\n", hotflow_ms);
 }
 
 Logger WorkerVisitor::ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
 
-void WorkerVisitor::ignThreadFunc(timestamp_t time, timestamp_t preigniteTime) {
+void WorkerVisitor::ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff) {
     ignThreadLogger.info("Ignition monitor thread started\n");
 
     // Whether the main valve is open; should open after preigniteTime elapses
@@ -81,14 +82,22 @@ void WorkerVisitor::ignThreadFunc(timestamp_t time, timestamp_t preigniteTime) {
             mainOpen = true;
             ignThreadLogger.info("Preignite time elapsed, opening main valve\n");
         }
-
+        
+        // Check if pressure shutoff has been indicated from the sensor thread
+        if (enableShutoff && pressureShutoff.load()) {
+            bcm2835_gpio_write(VALVE1, LOW);
+            bcm2835_gpio_write(IGN_START, LOW);
+            ignitionOn.store(false);
+            ignThreadLogger.info("Pressure shutoff indicated, closing valve and ending burn\n");
+            return;
+        }
 
         // Check ignitionOn to see if we should stop the burn
         if (!ignitionOn.load()) {
             // Main thread has indicated an ignition stop, so close everything
             bcm2835_gpio_write(VALVE1, LOW);
             bcm2835_gpio_write(IGN_START, LOW);
-            ignThreadLogger.info("Emergency stop indicated, closing valve ending burn\n");
+            ignThreadLogger.info("Emergency stop indicated, closing valve and ending burn\n");
             return;
         }
 
@@ -164,6 +173,6 @@ void WorkerVisitor::doIgn() {
     bcm2835_gpio_write(IGN_START, HIGH);
 
     // Create a monitoring thread to cut off ignition after time has elapsed
-    std::thread t(ignThreadFunc, hotflow_ms, preignite_ms);
+    std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, enableShutoff);
     t.detach();
 }

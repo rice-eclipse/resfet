@@ -25,24 +25,27 @@
 #define BUFF_SIZE	260
 
 PeriodicThread::PeriodicThread(uint16_t frequency_hz,
-							  SENSOR *sensors,
-							  uint8_t num_sensors,
-							  Udp::OutSocket *sock,
-							  std::mutex* sockMtx)
+                               SENSOR *sensors,
+                               uint8_t num_sensors,
+                               double pressureMax,
+                               double pressureMin,
+                               double pressureSlope,
+                               double pressureYint,
+                               Udp::OutSocket *sock)
 {
+        // Set pressure cutoff info
+        this->pressureMax = pressureMax;
+        this->pressureMin = pressureMin;
+        this->pressureSlope = pressureSlope;
+        this->pressureYint = pressureYint;
+        
+        // Set up ADC block
 	this->reader = adc_reader();
 
 	// Register each sensor with the ADC reader
 	for (int i = 0; i < num_sensors; i++) {
-		this->reader.add_adc_info(sensors[i], SENSOR_PINS[sensors[i]], SENSOR_CHANNELS[sensors[i]]);
+            this->reader.add_adc_info(sensors[i], SENSOR_PINS[sensors[i]], SENSOR_CHANNELS[sensors[i]]);
 	}
-
-	// TODO this is hard coded for the load cells
-	// 0 1 3 4 for load cells
-	// this->reader.add_adc_info(0, (bcm2835SPIChipSelect) 25, 0);
-	// this->reader.add_adc_info(1, (bcm2835SPIChipSelect) 25, 1);
-	// this->reader.add_adc_info(2, (bcm2835SPIChipSelect) 25, 3);
-	// this->reader.add_adc_info(3, (bcm2835SPIChipSelect) 25, 4);
 
 	// TODO assume we don't sleep for more than 1s
 	// TODO sleep time seems to be twice as long as it should be
@@ -53,18 +56,25 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 
 	for (int index = 0; index < num_sensors; index++) {
 		this->buffers->push_back(circular_buffer(sensors[index], 16));
-		this->loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
-						  		 SENSOR_NAMES[sensors[index]], LogLevel::DEBUG));
+		this->loggers->push_back(
+                    Logger(SENSOR_NAMES[sensors[index]],
+                           SENSOR_NAMES[sensors[index]],
+                           LogLevel::DEBUG)
+                );
 	}
 
 	this->num_sensors = num_sensors;
 	this->sock = sock;
-	this->sockMtx = sockMtx;
 }
 
 PeriodicThread::~PeriodicThread() {
 	delete this->buffers;
 	delete this->loggers;
+}
+
+// Perform a conversion from a raw ADC reading value to a calibrated value
+static double convertReading(uint16_t reading, double slope, double yint) {
+        return slope * reading + yint;
 }
 
 // The function that is run by each thread
@@ -73,8 +83,11 @@ static void *threadFunc(adc_reader reader,
                         std::vector<circular_buffer>* buffers,
                         uint64_t sleep_time_ns,
                         uint8_t num_sensors,
-                        Udp::OutSocket* sock,
-			std::mutex* sockMtx)
+                        double pressureMax,
+                        double pressureMin,
+                        double pressureSlope,
+                        double pressureYint,
+                        Udp::OutSocket* sock)
 {
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
@@ -83,6 +96,9 @@ static void *threadFunc(adc_reader reader,
 	uint16_t reading;
 	uint8_t *b = new uint8_t[BUFF_SIZE];
 	BUFF_STATUS status;
+        
+        // Running average for PT_COMB
+        double combAvg = 700; // initialize to a reasonable value
 	
 	// TODO: ever break out of this loop?
 	while(1) {
@@ -102,9 +118,15 @@ static void *threadFunc(adc_reader reader,
 #else
 			reading = reader.read_item(it->sensor);
 #endif
+                        // Include the reading in the running average
+                        combAvg = combAvg * 0.95 + convertReading(reading, pressureSlope, pressureYint) * 0.05;
+                        
+                        // If the average is beyond the cutoff threshold, signal the cutoff
+                        if (combAvg > pressureMax || combAvg < pressureMin) {
+                                pressureShutoff.store(true);
+                        }
+                        
 			timestamp = get_elapsed_time_us();
-			// printf("reading: %d timestamp: %lu\n", reading, timestamp);
-			// printf("reading: %d Timestamp delta: %lu\n", reading, timestamp - old_timestamp);
 			status = it->push_data_item(reading, timestamp);
 
 			/* If the circular buffer is full, send the available data */
@@ -113,7 +135,6 @@ static void *threadFunc(adc_reader reader,
 				it_log->data(b, BUFF_SIZE);
 				
 				// Send the data over UDP
-				sockMtx->lock();
 				if (sock != NULL && sock->getFd() != -1)
 					try {
 						sock->sendBuf(b, BUFF_SIZE);
@@ -128,9 +149,8 @@ static void *threadFunc(adc_reader reader,
 					printf("Problem with socket\n");
 					return NULL;
 				}
-				sockMtx->unlock();
-				//printf("Sent over udp\n");
 			}
+                        
 			old_timestamp = timestamp;
 			it_log++;
 		}
@@ -142,12 +162,15 @@ static void *threadFunc(adc_reader reader,
 
 void PeriodicThread::start() {
 	core_thread = std::thread(threadFunc,
-							  this->reader,
-							  this->loggers,
-							  this->buffers,
-							  this->sleep_time_ns,
-							  this->num_sensors,
-							  this->sock,
-							  this->sockMtx);
+                                  this->reader,
+                                  this->loggers,
+                                  this->buffers,
+                                  this->sleep_time_ns,
+                                  this->num_sensors,
+                                  this->pressureMax,
+                                  this->pressureMin,
+                                  this->pressureSlope,
+                                  this->pressureYint,
+                                  this->sock);
 	core_thread.detach();
 }

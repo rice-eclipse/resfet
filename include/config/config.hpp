@@ -123,6 +123,16 @@ class ConfigMapping {
 		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
 		 */
 		uint8_t getInt(const char* section, const char* key, uint32_t* dest);
+                
+                /**
+                 * @brief Get a value from the map as a double.
+                 * 
+                 * @param section the section from which to get the value
+                 * @param key 	  the key corresponding to the desired value
+		 * @param dest 	  a double into which to store the value
+		 * @return 1 on error (i.e. if the key is not found), 0 otherwise
+                 */
+                uint8_t getDouble(const char* section, const char* key, double* dest);
 
 		/**
 		 * @brief Get a value from the map as a boolean.

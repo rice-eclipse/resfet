@@ -151,6 +151,19 @@ uint8_t ConfigMapping::getInt(const char* section, const char* key, uint32_t* de
 	return 0;
 }
 
+uint8_t ConfigMapping::getDouble(const char* section, const char* key, double* dest) {
+        // Make sure the provided key is present
+        if (!isPresent(section, key)) {
+		#ifdef __EXTRA_DEBUG_LOG
+			std::cerr << "Key `" << key << "` not found in section `" << section
+					<< "`" << std::endl;
+		#endif
+		return 1;
+	}
+        *dest = atof(map[section][key][0].c_str());
+        return 0;
+}
+
 uint8_t ConfigMapping::getBool(const char* section, const char* key, bool* dest) {
 	uint32_t temp;
 	getInt(section, key, &temp);
