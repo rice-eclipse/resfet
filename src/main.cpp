@@ -73,7 +73,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // Set up a thread for all the sensors TODO -- don't do this, fam
+    // Set up a thread for all the sensors
+    // TODO: use a different thread for each type of sensor
     SENSOR allSensors[10] = {
         SENSOR::LC_MAIN,
 	SENSOR::LC1,
@@ -86,28 +87,9 @@ int main(int argc, char **argv) {
 	SENSOR::TC2,
 	SENSOR::TC3
     };
-    //uint16_t freq = SENSOR_FREQS[SENSOR::TC1]; // use lowest common denominator for now
     uint16_t freq = SENSOR_FREQS[SENSOR::LC_MAIN]; // TODO removing this causes undefined references???
     PeriodicThread thread(1000, allSensors, 10, &sock, &sockMtx);
     thread.start();
-
-    // Set up a thread for reading load cells
-    //SENSOR lcs[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
-    //uint16_t lcFreq = SENSOR_FREQS[SENSOR::LC_MAIN];
-    //PeriodicThread lcThread(lcFreq, lcs, 4, &sock, &sockMtx);
-    //lcThread.start();
-
-    // Set up a thread for reading pressure transducers
-    //SENSOR pts[3] = { SENSOR::PT_COMBUSTION, SENSOR::PT_INJECTOR, SENSOR::PT_FEED };
-    //uint16_t ptFreq = SENSOR_FREQS[SENSOR::PT_COMBUSTION];
-    //PeriodicThread ptThread(ptFreq, pts, 3, &sock, &sockMtx);
-    //ptThread.start();
-
-    // Set up a thread for reading thermocouples
-    //SENSOR tcs[3] = { SENSOR::TC1, SENSOR::TC2, SENSOR::TC3 };
-    //uint16_t tcFreq = SENSOR_FREQS[SENSOR::TC1];
-    //PeriodicThread tcThread(tcFreq, tcs, 3, &sock, &sockMtx);
-    //tcThread.start();
 
     Tcp::ListenSocket liSock;
     try {
@@ -119,7 +101,6 @@ int main(int argc, char **argv) {
     }
 
     Tcp::ConnSocket coSock;
-    // TODO pick the right visitor
 
     WorkerVisitor *visitor;
     config_map.getBool("", "engine_type", &engine_type);
@@ -148,12 +129,9 @@ int main(int argc, char **argv) {
 	    uint8_t read;
 	    try {
 		    while ((read = coSock.recvByte()) != '0') {
-			    // TODO only need this check because we're not synchronized with dashboard
-			    // if (read < COMMAND::NUM_COMMANDS)
-				    //network_logger.info("Received command: %s (%d)\n", command_names[read], read);
 			    network_logger.info("Received command: (%d)\n", read);
 #ifndef MOCK
-			    visitor->visitCommand((COMMAND)read);
+			    visitor->visitCommand((COMMAND) read);
 #endif
 		    }
 	    } catch (Tcp::ClientDisconnectException&) {

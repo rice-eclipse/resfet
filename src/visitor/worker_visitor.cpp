@@ -1,14 +1,17 @@
 /**
  * @file WorkerVisitor.cpp
  * @author Andrew Obler (obj2@rice.edu)
- * @author Tommy Yuan (ty19@rice.edu) * @brief A visitor superclass for handling commands.
+ * @author Tommy Yuan (ty19@rice.edu)
+ * @brief A visitor superclass for handling commands.
  * @version 0.1
  * @date 2019-09-17
  * 
  * @copyright Copyright (c) 2019
  */
 
-#include <mutex>
+#include <atomic>
+#include <chrono>
+#include <cstdio>
 #include <stdint.h>
 #include <time.h>
 #include <thread>
@@ -42,17 +45,16 @@ const char *command_names[NUM_COMMANDS] = {
 
 WorkerVisitor::WorkerVisitor()
     : config(ConfigMapping())
-    , burn_on(false)
     , logger("Visitor", "Visitor_Logger", LogLevel::DEBUG)
 {
-
+    burn_on.store(false);
 }
 
 WorkerVisitor::WorkerVisitor(ConfigMapping& config)
     : config(config)
-    , burn_on(false)
     , logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
 {
+	burn_on.store(false);
 	config.getInt("Worker", "preignite_ms", &preignite_ms);
 	config.getInt("Worker", "hotflow_ms", &hotflow_ms);
 	logger.debug("preignite_ms: %d\n", preignite_ms);
@@ -61,71 +63,78 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 
 Logger WorkerVisitor::ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
 
-void WorkerVisitor::ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx) {
+void WorkerVisitor::ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, std::atomic<bool>* burn_on) {
     ignThreadLogger.info("Ignition monitor thread started\n");
+
+    // Whether the main valve is open; should open after preigniteTime elapses
+    bool mainOpen = false;
 
     // Keep track of ignition time
     set_start_time();
     timestamp_t initTime = get_elapsed_time_ms();
     timestamp_t timeElapsed = 0;
 
-    // Calculate time between checks of pBurnOn
-    timespec tsCheck = { IGN_CHECK_MS / 1000, (IGN_CHECK_MS % 1000) * 1000000 };
-
     // Loop while there is time left for ignition
     while (timeElapsed < time) {
-        // Check pBurnOn
-        pMtx->lock();
-        if (!*pBurnOn) {
-            // Main thread has indicated an ignition stop
-            bcm2835_gpio_write(IGN_START, HIGH);
-            pMtx->unlock();
-            ignThreadLogger.info("Emergency stop indicated, ending burn\n");
+	// Check if the main valve should be opened
+        if (!mainOpen && timeElapsed > preigniteTime) {
+	    bcm2835_gpio_write(VALVE1, HIGH);
+	    mainOpen = true;
+	    ignThreadLogger.info("Preignite time elapsed, opening main valve\n");
+	}
+
+
+        // Check burn_on to see if we should stop the burn
+	if (!burn_on->load()) {
+            // Main thread has indicated an ignition stop, so close everything
+	    bcm2835_gpio_write(VALVE1, LOW);
+            bcm2835_gpio_write(IGN_START, LOW);
+            //pMtx->unlock();
+            ignThreadLogger.info("Emergency stop indicated, closing valve ending burn\n");
             return;
         }
-        pMtx->unlock();
-        // Sleep so we're not checking every cycle
-        nanosleep(&tsCheck, NULL);
+
+	// Sleep for a bit so we're not checking every cycle
+        std::this_thread::sleep_for(std::chrono::milliseconds(IGN_CHECK_MS));
         timeElapsed = get_elapsed_time_ms() - initTime;
     }
 
     // Burn time has elapsed, shut it off and indicate
-    bcm2835_gpio_write(IGN_START, HIGH);
-    pMtx->lock();
-    *pBurnOn = false;
-    pMtx->unlock();
+    bcm2835_gpio_write(VALVE1, LOW);
+    bcm2835_gpio_write(IGN_START, LOW);
+    burn_on->store(false);
     ignThreadLogger.info("Burn time elapsed, burn has ended\n");
 }
 
 void WorkerVisitor::visitCommand(COMMAND c) {
     switch (c) {
         case UNSET_VALVE1: {
-	        logger.info("Writing valve 1 off using pin %d\n", VALVE1);
+	    logger.info("Writing valve 1 off using pin %d\n", VALVE1);
             bcm2835_gpio_write(VALVE1, LOW);
             break;
         }
         case SET_VALVE1: {
-	        logger.info("Writing valve 1 on using pin %d\n", VALVE1);
+	    logger.info("Writing valve 1 on using pin %d\n", VALVE1);
             bcm2835_gpio_write(VALVE1, HIGH);
             break;
         }
         case UNSET_VALVE2: {
-	        logger.info("Writing valve 2 off using pin %d\n", VALVE2);
+	    logger.info("Writing valve 2 off using pin %d\n", VALVE2);
             bcm2835_gpio_write(VALVE2, LOW);
             break;
         }
         case SET_VALVE2: {
-	        logger.info("Writing valve 2 on using pin %d\n", VALVE2);
+	    logger.info("Writing valve 2 on using pin %d\n", VALVE2);
             bcm2835_gpio_write(VALVE2, HIGH);
             break;
         }
         case UNSET_VALVE3: {
-	        logger.info("Writing valve 3 off using pin %d\n", VALVE3);
+	    logger.info("Writing valve 3 off using pin %d\n", VALVE3);
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             break;
         }
         case SET_VALVE3: {
-	        logger.info("Writing valve 3 on using pin %d\n", VALVE3);
+	    logger.info("Writing valve 3 on using pin %d\n", VALVE3);
             bcm2835_gpio_write(VALVE3, HIGH);
             break;
         }
@@ -136,15 +145,27 @@ void WorkerVisitor::visitCommand(COMMAND c) {
         }
         case STOP_IGNITION: {
             logger.info("Stopping ignition\n");
-            burnMtx.lock();
-            burn_on = false;
-            burnMtx.unlock();
+            burn_on.store(false);
 
-            // NOTE: in theory, we don't need to do this, but better safe than sorry
-            bcm2835_gpio_write(IGN_START, HIGH);
+            // NOTE: in theory, we don't need to do this, because it happens in the thread,
+	    // but better safe than sorry
+	    bcm2835_gpio_write(VALVE1, LOW);
+            bcm2835_gpio_write(IGN_START, LOW);
 
-            // TODO close valve
             break;
+        }
+	//TODO for debugging, remove
+	case 72: {
+	    logger.info("Heap allocation\n");
+	    char* test = new char[128];
+	    
+	    logger.info("Heap write\n");
+	    for (int i = 0; i < 128; i++) {
+		test[i] = 'a';
+	    }
+
+	    logger.info("Heap deallocation\n");
+	    delete test;
         }
         default: {
 	        logger.error("Command not handled: %d\n", c);
@@ -154,12 +175,10 @@ void WorkerVisitor::visitCommand(COMMAND c) {
 }
 
 void WorkerVisitor::doIgn() {
-    bcm2835_gpio_write(IGN_START, LOW); // TODO: LOW or HIGH?
-    burnMtx.lock();
-    burn_on = true;
-    burnMtx.unlock();
+    burn_on.store(true);
+    bcm2835_gpio_write(IGN_START, HIGH);
 
     // Create a monitoring thread to cut off ignition after time has elapsed
-    std::thread t(ignThreadFunc, hotflow_ms, &burn_on, &burnMtx);
+    std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, &burn_on);
     t.detach();
 }

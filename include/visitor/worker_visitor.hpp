@@ -12,7 +12,7 @@
 #ifndef __WORKER_VISITOR_HPP
 #define __WORKER_VISITOR_HPP
 
-#include <mutex>
+#include <atomic>
 #include <vector>
 #include <time.h>
 #include <stdint.h>
@@ -66,12 +66,12 @@ class WorkerVisitor {
 		/**
 		 * @brief Whether the ignition sequence is currently enabled.
 		 */
-        bool burn_on;
+                std::atomic<bool> burn_on;
 
 		/**
 		 * @brief Mutex that is used to read/write burn_on across threads.
 		 */
-		std::mutex burnMtx;
+		//std::mutex burnMtx;
 
 		/**
 		 * @brief The amount of time to wait between starting ignition and
@@ -118,10 +118,11 @@ class WorkerVisitor {
 		 * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().
 		 * 
 		 * @param time the total burn time in milliseconds
+		 * @param preigniteTime time in milliseconds to wait before opening the ignition valve
 		 * @param pBurnOn a pointer to the corresponding WorkerVisitor::burn_on
 		 * @param pMtx a mutex that is locked to check pBurnOn
 		 */
-		static void ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx);
+		static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, std::atomic<bool>* burn_on);
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 

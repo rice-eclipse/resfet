@@ -80,9 +80,13 @@ void Logger::log(const char *format, LogLevel level, va_list argList) {
 	/* Save the formatted message in the internal buffer */
 	vsnprintf(buf, MAX_BUF_LEN, format, argList);
 
-	/* Write the formatted message, and other information, to the log file */
-	dprintf(file_fd, "[%s][%s][%lu] %s", name, LogLevelStrings[level], get_elapsed_time_ms(), buf);
+	/* Null-terminate the buffer, for safety */
+	buf[MAX_BUF_LEN - 1] = '\0';
 
+	/* Write the formatted message, and other information, to the log file */	
+	dprintf(file_fd, "[%s][%s][%lu] %s", name, LogLevelStrings[level], get_elapsed_time_ms(), buf);
+	
+	
 	/* Write to stdout */
 	dprintf(STDOUT_FILENO, "[%s][%s][%lu] %s", name, LogLevelStrings[level], get_elapsed_time_ms(), buf);
 }
