@@ -24,7 +24,8 @@
 /* TODO this has to be 16n + 4 */
 #define BUFF_SIZE	260
 
-PeriodicThread::PeriodicThread(uint16_t frequency_hz,
+PeriodicThread::PeriodicThread(const char *name,
+			       uint16_t frequency_hz,
                                SENSOR *sensors,
                                uint8_t num_sensors,
                                double pressureMax,
@@ -65,6 +66,8 @@ PeriodicThread::PeriodicThread(uint16_t frequency_hz,
 
 	this->num_sensors = num_sensors;
 	this->sock = sock;
+	
+	printf("%s starting with %d sensors\n", name, num_sensors);
 }
 
 PeriodicThread::~PeriodicThread() {
