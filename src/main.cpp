@@ -126,6 +126,7 @@ int main(int argc, char **argv) {
         printf("[main] WARNING: failed to read pressure shutoff values, using defaults\n");
     }
     
+    // TODO only PT thread needs the shutoff
     PeriodicThread lc_thread("Load Cell Thread", SENSOR_FREQS[SENSOR::LC_MAIN], lcs, 4, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
     PeriodicThread pt_thread("Pressure Transducer Thread", SENSOR_FREQS[SENSOR::PT_FEED], pts, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
     PeriodicThread tc_thread("Thermocouple Thread", SENSOR_FREQS[SENSOR::TC1], tcs, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);

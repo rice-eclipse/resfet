@@ -103,7 +103,8 @@ class PeriodicThread {
 		 * @param sensors the list of sensors to sample
 		 * @param num_sensors the number of sensors to be read
 		 */
-		PeriodicThread(uint16_t frequency_hz,
+		PeriodicThread(const char *name,
+			       uint16_t frequency_hz,
                                SENSOR *sensors,
                                uint8_t num_sensors,
                                double pressureMax,
