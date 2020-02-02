@@ -79,36 +79,54 @@ char SENSOR_NAMES[NUM_SENSORS][20] = {
 adc_reader::adc_reader() {
 }
 
+// TODO add logic for going into nap mode for slower sensors (wait 60ms)
+// TODO initiate dummy conversion in init after ADC power on.
+
 uint16_t adc_reader::read_item(uint8_t sensor_index) {
 	adc_info info;
+	char channel;
 
 	if (sensor_index < 0 || sensor_index > SENSOR::NUM_SENSORS)
 		return -1;
 	info = adc_infos[sensor_index];
 
 	/*
-	 * See datasheet for MCP3204 ADC for the SPI interface.
-	 *
-	 * Set on, single mode, channel.
+	 * See datasheet for LTC1876 ADC for the SPI interface. Page 7, Table 1
 	 */
-	char channel = 0x01 << 4 | 0x01 << 3 | (char) info.channel;
-	char write_buf[3] = {channel, 0, 0};
-	char read_buf[3] = {0, 0, 0};
 
-	// bcm2835_spi_chipSelect(info.cs_pin);
-	bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
+	// Set the 3-bit channel field
+	if (info.channel % 2 == 0) 
+		channel = info.channel / 2;
+	else
+		channel = 1 << 2 | ((info.channel - 1) / 2);
+
+	char input = 1 << 6 | 		// Single mode (not differential)
+		     channel << 5 | 	// Channel select
+		     0 << 2 | 		// Keep CH7 as CH7, not COMMON
+		     1 << 1 | 		// Unipolar (straight binary output)
+		     0; 		// No sleep mode
+
+	char write_buf[2] = {input, 0};
+	char read_buf[2] = {0, 0};
+
+	// Short active high pulse to start a conversion (return low within 100 ns)
+	// See Figure 7
+	bcm2835_gpio_write(info.cs_pin, HIGH);
 	bcm2835_gpio_write(info.cs_pin, LOW);
 
 	bcm2835_spi_transfernb(write_buf, read_buf, 3);
 
+	// Ignore the first input because it used a different config input.
+	// TODO is this right?
+	
+	// Start new conversion with our current config input.
 	bcm2835_gpio_write(info.cs_pin, HIGH);
+	bcm2835_gpio_write(info.cs_pin, LOW);
 
-	/* Annoying formatting because the return value is split across two bytes. */
-	read_buf[2] = (uint8_t)(((read_buf[2] >> 2) | ((read_buf[1] & 0x03) << 6)) & 0xFF);
-	read_buf[1] = (uint8_t)((read_buf[1] >> 2) & 0xFF);
+	bcm2835_spi_transfernb(write_buf, read_buf, 2);
 
-	/* Swap endianness of last two bytes and return */
-	return __bswap_16(*(uint16_t *)(read_buf + 1));
+	// Output is MSB first
+	return (read_buf[0] << 8) | read_buf[1];
 }
 
 uint16_t adc_reader::count_up() {
