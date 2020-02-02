@@ -8,6 +8,7 @@
  * 
  * @copyright Copyright (c) 2019
  */
+#include <cstdio>
 
 #include "config/config.hpp"
 #include "commands/rpi_pins.hpp"
@@ -74,7 +75,7 @@ void LunaVisitor::visitCommand(COMMAND c) {
         }
         default: {
             // Defer to super visitor
-            WorkerVisitor::visitCommand(c);
+	    WorkerVisitor::visitCommand(c);
             break;
         }
     }

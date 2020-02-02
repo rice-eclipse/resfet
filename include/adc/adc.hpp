@@ -51,7 +51,8 @@ enum SENSOR: uint8_t {
 		NUM_SENSORS
 };
 
-
+extern RPiGPIOPin SENSOR_PINS[NUM_SENSORS];
+extern uint8_t SENSOR_CHANNELS[NUM_SENSORS];
 extern uint16_t SENSOR_FREQS[NUM_SENSORS];
 extern char SENSOR_NAMES[NUM_SENSORS][20];
 

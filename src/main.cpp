@@ -1,6 +1,10 @@
+#include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <mutex>
 #include <iostream>
 #include <string.h>
+#include <thread>
 #include <bcm2835.h>
 
 #include "networking/Udp.hpp"
@@ -16,6 +20,19 @@
 // lol
 #define LUNA 0
 #define TITAN 1
+
+// Defaults for pressure cutoff
+#define DEFAULT_PRESSURE_MAX 800
+#define DEFAULT_PRESSURE_MIN 300
+#define DEFAULT_PRESSURE_SLOPE -0.3
+#define DEFAULT_PRESSURE_YINT 1108.1
+
+// Global lock for ignition state
+// TODO: move this to a more appropriate place?
+std::atomic<bool> ignitionOn;   
+
+// Global lock for extreme low/high pressure, for safety shutoff
+std::atomic<bool> pressureShutoff;   
 
 // Simple send test for UDP interface
 int main(int argc, char **argv) {
@@ -49,14 +66,20 @@ int main(int argc, char **argv) {
     }
 #endif
 
+    // Mark ignition as off
+    ignitionOn.store(false);
+
+    // Mark no pressure shutoff
+    pressureShutoff.store(false);
+
     // Set up the socket
-    // TODO use config file to set port, address
     config_map.getString("Network", "address", address, 16);
     config_map.getInt("Network", "port", &port);
     Logger network_logger("Networking", "NetworkLog", LogLevel::DEBUG);
     Udp::OutSocket sock;
+    std::mutex sockMtx;
     try {
-        sock.setDest(address, port);
+        sock.setDest(address, port);  
     } catch (Udp::OpFailureException& ofe) {
         network_logger.error("Could not set destination\n");
         return -1;
@@ -71,10 +94,45 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    /* Set up a thread for reading load cells */
-    SENSOR sensors[4] = { SENSOR::LC_MAIN, SENSOR::LC1, SENSOR::LC2, SENSOR::LC3 };
-    PeriodicThread per_thread(SENSOR_FREQS[sensors[0]], sensors, 4, &sock);
-    per_thread.start();
+    SENSOR lcs[4] = {
+        SENSOR::LC_MAIN,
+        SENSOR::LC1,
+        SENSOR::LC2,
+        SENSOR::LC3,
+    };
+
+    SENSOR pts[3] = {
+        SENSOR::PT_COMBUSTION,
+        SENSOR::PT_INJECTOR,
+        SENSOR::PT_FEED,
+    };
+
+    SENSOR tcs[3] = {
+        SENSOR::TC1,
+        SENSOR::TC2,
+        SENSOR::TC3
+    };
+    
+    // Retrieve pressure cutoff info from the map
+    double pressureMax = DEFAULT_PRESSURE_MAX,
+           pressureMin = DEFAULT_PRESSURE_MIN,
+           pressureSlope = DEFAULT_PRESSURE_SLOPE,
+           pressureYint = DEFAULT_PRESSURE_YINT;
+    int readAll = config_map.getDouble("Pressure", "pressure_max", &pressureMax) +
+                  config_map.getDouble("Pressure", "pressure_min", &pressureMin) +
+                  config_map.getDouble("Pressure", "pressure_slope", &pressureSlope) +
+                  config_map.getDouble("Pressure", "pressure_yint", &pressureYint);
+    if (readAll != 0) {
+        printf("[main] WARNING: failed to read pressure shutoff values, using defaults\n");
+    }
+    
+    // TODO only PT thread needs the shutoff
+    PeriodicThread lc_thread("Load Cell Thread", SENSOR_FREQS[SENSOR::LC_MAIN], lcs, 4, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    PeriodicThread pt_thread("Pressure Transducer Thread", SENSOR_FREQS[SENSOR::PT_FEED], pts, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    PeriodicThread tc_thread("Thermocouple Thread", SENSOR_FREQS[SENSOR::TC1], tcs, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    lc_thread.start();
+    pt_thread.start();
+    tc_thread.start();
 
     Tcp::ListenSocket liSock;
     try {
@@ -86,7 +144,6 @@ int main(int argc, char **argv) {
     }
 
     Tcp::ConnSocket coSock;
-    // TODO pick the right visitor
 
     WorkerVisitor *visitor;
     config_map.getBool("", "engine_type", &engine_type);
@@ -115,12 +172,9 @@ int main(int argc, char **argv) {
 	    uint8_t read;
 	    try {
 		    while ((read = coSock.recvByte()) != '0') {
-			    // TODO only need this check because we're not synchronized with dashboard
-			    // if (read < COMMAND::NUM_COMMANDS)
-				    //network_logger.info("Received command: %s (%d)\n", command_names[read], read);
 			    network_logger.info("Received command: (%d)\n", read);
 #ifndef MOCK
-			    visitor->visitCommand((COMMAND)read);
+			    visitor->visitCommand((COMMAND) read);
 #endif
 		    }
 	    } catch (Tcp::ClientDisconnectException&) {

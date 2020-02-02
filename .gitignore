@@ -7,6 +7,9 @@ build/*
 # Contents of documentation directory
 doc/*
 
+# Contents of logfile directory
+logs
+
 # OS-related files
 .DS_Store
 

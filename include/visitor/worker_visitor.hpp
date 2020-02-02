@@ -12,7 +12,7 @@
 #ifndef __WORKER_VISITOR_HPP
 #define __WORKER_VISITOR_HPP
 
-#include <mutex>
+#include <atomic>
 #include <vector>
 #include <time.h>
 #include <stdint.h>
@@ -48,6 +48,12 @@ enum COMMAND: uint8_t {
 
 extern const char* command_names[NUM_COMMANDS];
 
+// Defined in main.cpp
+extern std::atomic<bool> ignitionOn;
+
+// Defined in main.cpp
+extern std::atomic<bool> pressureShutoff;
+
 /**
  * @brief Defines the superclass for the Luna and Titan visitors.
  * 	  A visitor "visits" a received command performs the appropriate
@@ -64,16 +70,6 @@ class WorkerVisitor {
 		ConfigMapping config;
 
 		/**
-		 * @brief Whether the ignition sequence is currently enabled.
-		 */
-                bool burn_on;
-
-		/**
-		 * @brief Mutex that is used to read/write burn_on across threads.
-		 */
-		std::mutex burnMtx;
-
-		/**
 		 * @brief The amount of time to wait between starting ignition and
 		 *        opening the main valve.
 		 */
@@ -84,6 +80,11 @@ class WorkerVisitor {
 		 *        stopping ignition and closing the main valve.
 		 */
 		uint32_t hotflow_ms;
+        
+        /**
+         * @brief Whether to enable pressure safety shutoff.
+         */
+        bool enableShutoff;
 
 	public:
 		/**
@@ -107,17 +108,22 @@ class WorkerVisitor {
 		 * @brief Visits a command by performing the function associated
 		 * 	  with that command.
 		 */
-                virtual void visitCommand(COMMAND c);
+        virtual void visitCommand(COMMAND c);
 
-			
+		/**
+		 * @brief Logger that is used by ignThreadFunc for info messages.
+		 */
+		//static Logger ignThreadLogger;
+
 		/**
 		 * @brief Function that is performed by the thread created in WorkerVisitor::doIgn().
 		 * 
 		 * @param time the total burn time in milliseconds
+		 * @param preigniteTime time in milliseconds to wait before opening the ignition valve
 		 * @param pBurnOn a pointer to the corresponding WorkerVisitor::burn_on
 		 * @param pMtx a mutex that is locked to check pBurnOn
 		 */
-		static void ignThreadFunc(timestamp_t time, bool* pBurnOn, std::mutex* pMtx);
+		//static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff);
 
         /**
          * @brief Operation corresponding to the beginning of ignition. 

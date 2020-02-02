@@ -14,6 +14,42 @@
 
 #include "adc/adc.hpp"
 
+/**
+ * @brief The pins of the respective ADCs for each sensor.
+ */
+RPiGPIOPin SENSOR_PINS[SENSOR::NUM_SENSORS] = {
+	// LCs
+	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
+	
+	// PTs
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
+
+	// TCs
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24
+};
+
+uint8_t SENSOR_CHANNELS[NUM_SENSORS] = {
+	0, // LC_MAIN
+	1, // LC1
+	3, // LC2
+	4, // LC3
+
+	2, // PT_COMBUSTION
+	1, // PT_INJECTOR
+	0, // PT_FEED
+
+	4, // TC1
+	5, // TC2
+	6  // TC3
+};
+
 uint16_t SENSOR_FREQS[NUM_SENSORS] = {
 	2000,
 	2000,
@@ -59,9 +95,13 @@ uint16_t adc_reader::read_item(uint8_t sensor_index) {
 	char write_buf[3] = {channel, 0, 0};
 	char read_buf[3] = {0, 0, 0};
 
-	bcm2835_spi_chipSelect(info.cs_pin);
+	// bcm2835_spi_chipSelect(info.cs_pin);
+	bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
+	bcm2835_gpio_write(info.cs_pin, LOW);
 
 	bcm2835_spi_transfernb(write_buf, read_buf, 3);
+
+	bcm2835_gpio_write(info.cs_pin, HIGH);
 
 	/* Annoying formatting because the return value is split across two bytes. */
 	read_buf[2] = (uint8_t)(((read_buf[2] >> 2) | ((read_buf[1] & 0x03) << 6)) & 0xFF);
