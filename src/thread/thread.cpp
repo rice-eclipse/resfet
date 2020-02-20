@@ -12,6 +12,7 @@
 #include <mutex>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <vector>
 
 #include "adc/adc.hpp"
@@ -119,13 +120,23 @@ static void *threadFunc(adc_reader reader,
 			reading = reader.read_item(it->sensor);
 #endif
                         // Include the reading in the running average
-			double converted = pressureSlope * reading + pressureYint;
-                        combAvg = combAvg * 0.95 + converted * 0.05;
+			if (it->sensor == PT_COMBUSTION) {
+				double converted = pressureSlope * reading + pressureYint;
+                        	combAvg = combAvg * 0.95 + converted * 0.05;
                         
-                        // If the average is beyond the cutoff threshold, signal the cutoff
-                        if (!pressureShutoff.load() && (combAvg > pressureMax || combAvg < pressureMin)) {
-                                pressureShutoff.store(true);
-                        }
+                        	// If the average is beyond the cutoff threshold, signal the cutoff
+                        	//printf("Running avg: %f\n", (float) combAvg);
+				if (combAvg > pressureMax || combAvg < pressureMin) {
+                                	pressureShutoff.store(true);
+					printf("Stored pressure shutoff: %d\n", (int) pressureShutoff.load());
+                        	} else {
+					if (pressureShutoff.load()) {
+						printf("Pressure returned to nominal\n");
+					}
+					pressureShutoff.store(false);
+				}
+					
+			}
                         
 			timestamp = get_elapsed_time_us();
 			status = it->push_data_item(reading, timestamp);

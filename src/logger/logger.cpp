@@ -32,9 +32,12 @@ Logger::Logger(const char *name, const char *fname, LogLevel log_level)
 		get_formatted_time(time_buf);
 
 		strcpy(filename, "logs/");
+		strcat(filename, time_buf);
+		strcat(filename, "/");
 		strcat(filename, fname);
 		strcat(filename, "_");
 		strcat(filename, time_buf);
+		strcat(filename, ".log");
 
 		printf("Filename: %s\n", filename);
 		create_log_file();
@@ -44,10 +47,23 @@ Logger::Logger(const char *name, const char *fname, LogLevel log_level)
 int Logger::create_log_file() {	
 	struct stat st;
 
+	char time_buf[MAX_TIME_BUF_LEN];
+	set_start_time();
+	get_formatted_time(time_buf);
+
 	/* Create the logs directory if it does not exist */
 	if (stat("logs", &st) == -1) {
-		if (mkdir("logs", 0700) == -1)
+		if (mkdir("logs", 0777) == -1)
 			dprintf(STDERR_FILENO, "Create logs directory unsuccessful: %s\n",
+						strerror(errno));
+	}
+
+	char createdir[MAX_TIME_BUF_LEN + 6] = "logs/";
+	strcat(createdir, time_buf);
+	
+	if (stat(createdir, &st) == -1) {
+		if (mkdir(createdir, 0777) == -1)
+			dprintf(STDERR_FILENO, "Create logs subdirectory unsuccessful: %s\n",
 						strerror(errno));
 	}
 	
@@ -57,7 +73,7 @@ int Logger::create_log_file() {
 	 * This assumes there are no shared filenames since they should
 	 * contain the time of creation.
 	 */
-	if ((file_fd = open(filename, O_CREAT | O_RDWR | O_TRUNC, S_IRWXU)) == -1) {
+	if ((file_fd = open(filename, O_CREAT | O_RDWR | O_TRUNC, 0777)) == -1) {
 		dprintf(STDERR_FILENO, "Create log file unsuccessful: %s\n",
 				strerror(errno));
 		return -1;

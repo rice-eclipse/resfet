@@ -74,6 +74,8 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enab
     set_start_time();
     timestamp_t initTime = get_elapsed_time_ms();
     timestamp_t timeElapsed = 0;
+    // TODO make a constant
+    const timestamp_t preShutoff_ms = 4750;
 
     // Loop while there is time left for ignition
     while (timeElapsed < time) {
@@ -85,7 +87,7 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enab
         }
         
         // Check if pressure shutoff has been indicated from the sensor thread
-        if (enableShutoff && pressureShutoff.load()) {
+        if ((timeElapsed > preShutoff_ms) && enableShutoff && pressureShutoff.load()) {
             bcm2835_gpio_write(VALVE1, LOW);
             bcm2835_gpio_write(IGN_START, LOW);
             ignitionOn.store(false);
