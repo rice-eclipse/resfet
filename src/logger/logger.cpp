@@ -27,10 +27,11 @@ Logger::Logger(const char *name, const char *fname, LogLevel log_level)
   	{
 		char time_buf[MAX_TIME_BUF_LEN];
 
-		/* Start the timer and create the filename */ 
+		/* Set start time of RESFET and get the formatted name into time_buf. */
 		set_start_time();
 		get_formatted_time(time_buf);
 
+		/* Set the name of the file. */
 		strcpy(filename, "logs/");
 		strcat(filename, time_buf);
 		strcat(filename, "/");
@@ -39,16 +40,22 @@ Logger::Logger(const char *name, const char *fname, LogLevel log_level)
 		strcat(filename, time_buf);
 		strcat(filename, ".log");
 
+		/* Print for debugging. */
 		printf("Filename: %s\n", filename);
+
+		/* Create the log file. */
 		create_log_file();
-		// TODO write any initial info (e.g. config files) to the log file
+
+		// TODO: write any initial info (e.g. config files) to the log file
 	}
 
 int Logger::create_log_file() {	
 	struct stat st;
 
 	char time_buf[MAX_TIME_BUF_LEN];
-	set_start_time();
+
+    /* Set start time of RESFET and get the formatted name into time_buf. */
+    set_start_time();
 	get_formatted_time(time_buf);
 
 	/* Create the logs directory if it does not exist */
@@ -58,6 +65,7 @@ int Logger::create_log_file() {
 						strerror(errno));
 	}
 
+	/* Create a new sub-directory in logs/ to store logs related to current process. */
 	char createdir[MAX_TIME_BUF_LEN + 6] = "logs/";
 	strcat(createdir, time_buf);
 	
@@ -66,7 +74,6 @@ int Logger::create_log_file() {
 			dprintf(STDERR_FILENO, "Create logs subdirectory unsuccessful: %s\n",
 						strerror(errno));
 	}
-	
 
 	/*
 	 * Open the file for writing (will delete previous contents).
@@ -101,7 +108,6 @@ void Logger::log(const char *format, LogLevel level, va_list argList) {
 
 	/* Write the formatted message, and other information, to the log file */	
 	dprintf(file_fd, "[%s][%s][%lu] %s", name, LogLevelStrings[level], get_elapsed_time_ms(), buf);
-	
 	
 	/* Write to stdout */
 	dprintf(STDOUT_FILENO, "[%s][%s][%lu] %s", name, LogLevelStrings[level], get_elapsed_time_ms(), buf);
