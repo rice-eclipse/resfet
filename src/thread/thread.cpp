@@ -119,23 +119,22 @@ static void *threadFunc(adc_reader reader,
 #else
 			reading = reader.read_item(it->sensor);
 #endif
-                        // Include the reading in the running average
+            // Include the reading in the running average
 			if (it->sensor == PT_COMBUSTION) {
 				double converted = pressureSlope * reading + pressureYint;
-                        	combAvg = combAvg * 0.95 + converted * 0.05;
+				combAvg = combAvg * 0.95 + converted * 0.05;
                         
-                        	// If the average is beyond the cutoff threshold, signal the cutoff
-                        	//printf("Running avg: %f\n", (float) combAvg);
+				// If the average is beyond the cutoff threshold, signal the cutoff
+				//printf("Running avg: %f\n", (float) combAvg);
 				if (combAvg > pressureMax || combAvg < pressureMin) {
-                                	pressureShutoff.store(true);
+				    pressureShutoff.store(true);
 					printf("Stored pressure shutoff: %d\n", (int) pressureShutoff.load());
-                        	} else {
+				} else {
 					if (pressureShutoff.load()) {
 						printf("Pressure returned to nominal\n");
 					}
 					pressureShutoff.store(false);
 				}
-					
 			}
                         
 			timestamp = get_elapsed_time_us();
