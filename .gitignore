@@ -1,5 +1,6 @@
 # IDE/Editor-related files
 .vscode
+.idea
 
 # Contents of output directory
 build/*
@@ -9,6 +10,7 @@ doc/*
 
 # Contents of logfile directory
 logs
+cmake-build-debug
 
 # OS-related files
 .DS_Store
