@@ -119,8 +119,7 @@ static void *threadFunc(adc_reader reader, std::vector<Logger>* loggers,
 				if (combAvg > pressureMax || 
                                     combAvg < pressureMin) {
 				        if (!pressureShutoff.load())
-                                                printf("Stored pressure 
-                                                    shutoff: %d\n", (int) 
+                                                printf("Stored pressure shutoff: %d\n", (int)
                                                     pressureShutoff.load());
 
                                         pressureShutoff.store(true);
