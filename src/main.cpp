@@ -94,16 +94,20 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // Set up a thread for all the sensors
-    // TODO: use a different thread for each type of sensor
-    SENSOR allSensors[10] = {
+    SENSOR lcs[4] = {
         SENSOR::LC_MAIN,
         SENSOR::LC1,
         SENSOR::LC2,
         SENSOR::LC3,
+    };
+
+    SENSOR pts[3] = {
         SENSOR::PT_COMBUSTION,
         SENSOR::PT_INJECTOR,
         SENSOR::PT_FEED,
+    };
+
+    SENSOR tcs[3] = {
         SENSOR::TC1,
         SENSOR::TC2,
         SENSOR::TC3
@@ -122,9 +126,13 @@ int main(int argc, char **argv) {
         printf("[main] WARNING: failed to read pressure shutoff values, using defaults\n");
     }
     
-    uint16_t freq = SENSOR_FREQS[SENSOR::LC_MAIN]; // TODO removing this causes undefined references???
-    PeriodicThread thread(1000, allSensors, 10, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
-    thread.start();
+    // TODO only PT thread needs the shutoff
+    PeriodicThread lc_thread("Load Cell Thread", SENSOR_FREQS[SENSOR::LC_MAIN], lcs, 4, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    PeriodicThread pt_thread("Pressure Transducer Thread", SENSOR_FREQS[SENSOR::PT_FEED], pts, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    PeriodicThread tc_thread("Thermocouple Thread", SENSOR_FREQS[SENSOR::TC1], tcs, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    lc_thread.start();
+    pt_thread.start();
+    tc_thread.start();
 
     Tcp::ListenSocket liSock;
     try {

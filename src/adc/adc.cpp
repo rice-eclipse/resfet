@@ -10,9 +10,12 @@
 
 #include <bcm2835.h>
 #include <byteswap.h>
+#include <mutex>
 #include <stdint.h>
 
 #include "adc/adc.hpp"
+
+std::mutex adc_mutex;
 
 /**
  * @brief The pins of the respective ADCs for each sensor.
@@ -80,6 +83,9 @@ adc_reader::adc_reader() {
 }
 
 uint16_t adc_reader::read_item(uint8_t sensor_index) {
+	// Lock the mutex.
+	adc_mutex.lock();
+	
 	adc_info info;
 
 	if (sensor_index < 0 || sensor_index > SENSOR::NUM_SENSORS)
@@ -106,6 +112,8 @@ uint16_t adc_reader::read_item(uint8_t sensor_index) {
 	/* Annoying formatting because the return value is split across two bytes. */
 	read_buf[2] = (uint8_t)(((read_buf[2] >> 2) | ((read_buf[1] & 0x03) << 6)) & 0xFF);
 	read_buf[1] = (uint8_t)((read_buf[1] >> 2) & 0xFF);
+
+	adc_mutex.unlock();
 
 	/* Swap endianness of last two bytes and return */
 	return __bswap_16(*(uint16_t *)(read_buf + 1));
