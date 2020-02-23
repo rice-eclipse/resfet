@@ -12,6 +12,7 @@
 #include <mutex>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <vector>
 
 #include "adc/adc.hpp"
@@ -45,7 +46,8 @@ PeriodicThread::PeriodicThread(const char *name,
 
 	// Register each sensor with the ADC reader
 	for (int i = 0; i < num_sensors; i++) {
-            this->reader.add_adc_info(sensors[i], SENSOR_PINS[sensors[i]], SENSOR_CHANNELS[sensors[i]]);
+                this->reader.add_adc_info(sensors[i], SENSOR_PINS[sensors[i]], 
+                    SENSOR_CHANNELS[sensors[i]]);
 	}
 
 	// TODO assume we don't sleep for more than 1s
@@ -56,12 +58,9 @@ PeriodicThread::PeriodicThread(const char *name,
 	this->loggers = new std::vector<Logger>;
 
 	for (int index = 0; index < num_sensors; index++) {
-		this->buffers->push_back(circular_buffer(sensors[index], 16));
-		this->loggers->push_back(
-                    Logger(SENSOR_NAMES[sensors[index]],
-                           SENSOR_NAMES[sensors[index]],
-                           LogLevel::DEBUG)
-                );
+	        this->buffers->push_back(circular_buffer(sensors[index], 16));
+	        this->loggers->push_back(Logger(SENSOR_NAMES[sensors[index]],
+                    SENSOR_NAMES[sensors[index]], LogLevel::DEBUG));
 	}
 
 	this->num_sensors = num_sensors;
@@ -81,16 +80,10 @@ PeriodicThread::~PeriodicThread() {
 //}
 
 // The function that is run by each thread
-static void *threadFunc(adc_reader reader,
-                        std::vector<Logger>* loggers,
-                        std::vector<circular_buffer>* buffers,
-                        uint64_t sleep_time_ns,
-                        uint8_t num_sensors,
-                        double pressureMax,
-                        double pressureMin,
-                        double pressureSlope,
-                        double pressureYint,
-                        Udp::OutSocket* sock)
+static void *threadFunc(adc_reader reader, std::vector<Logger>* loggers,
+    std::vector<circular_buffer>* buffers, uint64_t sleep_time_ns, 
+    uint8_t num_sensors, double pressureMax, double pressureMin, 
+    double pressureSlope, double pressureYint, Udp::OutSocket* sock)
 {
 	struct timespec rem, spec;
 	std::vector<circular_buffer>::iterator it;
@@ -105,12 +98,12 @@ static void *threadFunc(adc_reader reader,
 	
 	// TODO: ever break out of this loop?
 	while(1) {
-		spec.tv_sec = 0;
-		spec.tv_nsec = sleep_time_ns;
+	        spec.tv_sec = 0;
+	        spec.tv_nsec = sleep_time_ns;
 
 		// Sleep multiple times if we get interrupted while sleeping
 		while (nanosleep(&spec, &rem) == -1) {
-			printf("New wait time: %lu\n", rem.tv_nsec);
+		        printf("New wait time: %lu\n", rem.tv_nsec);
 			spec.tv_nsec = rem.tv_nsec;
 		}
 
@@ -122,13 +115,29 @@ static void *threadFunc(adc_reader reader,
 			reading = reader.read_item(it->sensor);
 #endif
                         // Include the reading in the running average
-			double converted = pressureSlope * reading + pressureYint;
-                        combAvg = combAvg * 0.95 + converted * 0.05;
-                        
-                        // If the average is beyond the cutoff threshold, signal the cutoff
-                        if (!pressureShutoff.load() && (combAvg > pressureMax || combAvg < pressureMin)) {
-                                pressureShutoff.store(true);
-                        }
+			if (it->sensor == PT_COMBUSTION) {
+			        double converted = pressureSlope * 
+                                    reading + pressureYint;
+				combAvg = combAvg * 0.95 + converted * 0.05;
+
+				// If the average is beyond the cutoff 
+                                // threshold, signal the cutoff
+				
+                                //printf("Running avg: %f\n", (float) combAvg);
+				if (combAvg > pressureMax || 
+                                    combAvg < pressureMin) {
+				        if (!pressureShutoff.load())
+                                                printf("Stored pressure shutoff: %d\n", (int)
+                                                    pressureShutoff.load());
+
+                                        pressureShutoff.store(true);
+				} else {
+					if (pressureShutoff.load())
+						printf("Pressure returned to nominal.\n");
+
+					pressureShutoff.store(false);
+				}
+			}
                         
 			timestamp = get_elapsed_time_us();
 			status = it->push_data_item(reading, timestamp);

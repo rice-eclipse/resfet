@@ -80,6 +80,12 @@ class WorkerVisitor {
 		 *        stopping ignition and closing the main valve.
 		 */
 		uint32_t hotflow_ms;
+
+		/**
+		 * @brief The amount of time to wait between starting ignition and
+		 *        enabling the pressure shutoff.
+		 */
+		 uint32_t pressureshutoff_ms;
         
         /**
          * @brief Whether to enable pressure safety shutoff.

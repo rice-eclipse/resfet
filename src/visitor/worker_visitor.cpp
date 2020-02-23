@@ -56,15 +56,18 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 {
 	config.getInt("Worker", "preignite_ms", &preignite_ms);
 	config.getInt("Worker", "hotflow_ms", &hotflow_ms);
-        config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
+	config.getInt("Pressure", "pressureshutoff_ms", &pressureshutoff_ms);
+	config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
+
 	logger.debug("preignite_ms: %d\n", preignite_ms);
 	logger.debug("hotflow_ms: %d\n", hotflow_ms);
-	logger.debug("shutoff_enabled: %d\n", enableShutoff);
+    logger.debug("pressureshutoff_ms: %d\n", pressureshutoff_ms);
+    logger.debug("shutoff_enabled: %d\n", enableShutoff);
 }
 
 static Logger ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
 
-static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enableShutoff) {
+static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp_t pressureShutoffDelay, bool enableShutoff) {
     ignThreadLogger.info("Ignition monitor thread started\n");
 
     // Whether the main valve is open; should open after preigniteTime elapses
@@ -81,25 +84,20 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enab
         if (!mainOpen && timeElapsed > preigniteTime) {
             bcm2835_gpio_write(VALVE1, HIGH);
             mainOpen = true;
-            ignThreadLogger.info("Preignite time elapsed, opening main valve\n");
+            ignThreadLogger.info("Preignite time elapsed, opening main valve.\n");
         }
         
         // Check if pressure shutoff has been indicated from the sensor thread
-        if (enableShutoff && pressureShutoff.load()) {
-            bcm2835_gpio_write(VALVE1, LOW);
-            bcm2835_gpio_write(IGN_START, LOW);
-            ignitionOn.store(false);
-            ignThreadLogger.info("Pressure shutoff indicated, closing valve and ending burn\n");
-            return;
+        if (timeElapsed > pressureShutoffDelay && enableShutoff && pressureShutoff.load()) {
+            ignThreadLogger.info("Pressure shutoff indicated, closing valve and ending burn.\n");
+            break;
         }
 
         // Check ignitionOn to see if we should stop the burn
         if (!ignitionOn.load()) {
             // Main thread has indicated an ignition stop, so close everything
-            bcm2835_gpio_write(VALVE1, LOW);
-            bcm2835_gpio_write(IGN_START, LOW);
-            ignThreadLogger.info("Emergency stop indicated, closing valve and ending burn\n");
-            return;
+            ignThreadLogger.info("Emergency stop indicated, closing valve and ending burn.\n");
+            break;
         }
 
         // Sleep for a bit so we're not checking every cycle
@@ -111,7 +109,7 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, bool enab
     bcm2835_gpio_write(VALVE1, LOW);
     bcm2835_gpio_write(IGN_START, LOW);
     ignitionOn.store(false);
-    ignThreadLogger.info("Burn time elapsed, burn has ended\n");
+    ignThreadLogger.info("Burn has ended.\n");
 }
 
 void WorkerVisitor::visitCommand(COMMAND c) {
@@ -175,6 +173,6 @@ void WorkerVisitor::doIgn() {
     bcm2835_gpio_write(IGN_START, HIGH);
 
     // Create a monitoring thread to cut off ignition after time has elapsed
-    std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, enableShutoff);
+    std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff);
     t.detach();
 }
