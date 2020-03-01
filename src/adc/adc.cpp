@@ -15,6 +15,9 @@
 
 #include "adc/adc.hpp"
 
+/**
+ * @brief Global lock to ensure sequential ADC reads.
+ */
 std::mutex adc_mutex;
 
 /**
