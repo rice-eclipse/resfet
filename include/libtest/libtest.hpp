@@ -37,6 +37,16 @@ int testlib_shutdown();
 int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_args);
 
 /**
+ * @brief Asserts the result matches the expected result.
+ *
+ * @result The result to be checked.
+ * @expected The expected result.
+ * @TestStats The statistics  for this test suite/file.
+ * @assert_name The name of this assertion.
+ */
+int assert_equals(int result, int expected, TestStats, const char *assert_name);
+
+/**
  * @brief Asserts the result is true.
  *
  * @result The result to be checked.

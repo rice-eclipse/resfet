@@ -14,10 +14,9 @@
 #include "libtest/libtest.hpp"
 
 // TODO use the logger.
-// testEquals
 // specify log level in command line
 // pretty printing
-// directory issues
+// check string equals
 
 static test_stats global_stats = {0};
 static test_stats func_stats;
@@ -60,12 +59,27 @@ int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_
 	return (result);
 }
 
-int assert_true(int result, TestStats s, const char *assert_name) {
-	if (result) {
-		printf("\t %.32s pass\n", assert_name);
+int assert_equals(int result, int expected, TestStats s, const char *assert_name) {
+	if (result == expected) {
+		printf("\t Pass: %.32s\n", assert_name);
 		s->num_pass++;
 	} else {
-		printf("\t %.32s fail\n", assert_name);
+		printf("\t Fail: %.32s. Expected %d but result was %d\n",
+				assert_name, expected, result);
+		s->num_fail++;
+	}
+
+	s->num_total++;
+
+	return (result);
+}
+
+int assert_true(int result, TestStats s, const char *assert_name) {
+	if (result) {
+		printf("\t Pass: %.32s\n", assert_name);
+		s->num_pass++;
+	} else {
+		printf("\t Fail: %.32s\n", assert_name);
 		s->num_fail++;
 	}
 
