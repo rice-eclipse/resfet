@@ -1,9 +1,11 @@
 cmake_minimum_required (VERSION 2.8.7)
 add_compile_options(-std=c++11)
+# add_compile_options(-std=c++11 -Werror -Wall -Wextra)
 project(resfet)
 
 # Include the header files
 include_directories(include)
+include_directories(test/libtest)
 
 # Add the directories for source code
 add_subdirectory(src/networking)
@@ -15,10 +17,10 @@ add_subdirectory(src/circular_buffer)
 add_subdirectory(src/thread)
 add_subdirectory(src/visitor)
 add_subdirectory(src/init)
+add_subdirectory(src/libtest)
 
 # Add the directories for testing code
-add_subdirectory(test/framework)
-# add_executable(udp_echo_server test/src/udp/udp_echo_server.cpp)
+add_subdirectory(test/config)
 
 # Build the main executables
 add_executable(resfet src/main.cpp)
