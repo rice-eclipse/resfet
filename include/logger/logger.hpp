@@ -32,14 +32,16 @@ enum LogLevel {
 	SILENT = 0,
 	ERROR = 1,
 	INFO = 2,
-	DEBUG = 3
+	DEBUG = 3,
+	VERBATIM = 4
 };
 
-const char LogLevelStrings[][7] ={
+const char LogLevelStrings[][9] ={
 	"SILENT",
 	"ERROR",
 	"INFO",
-	"DEBUG"
+	"DEBUG",
+	"VERBATIM"
 };
 
 /**
@@ -93,6 +95,11 @@ class Logger {
 		Logger(const char *name, const char *filename, LogLevel log_level);
 
 		/**
+		 * @brief Getter method for the timestamped filename.
+		 */
+		char *getFilename();
+
+		/**
 		 * @brief Logs a message if the logger's log level is at least as high
 		 * 	  	  as the provided log level. 
 		 * @msg	  The message to log.
@@ -120,6 +127,13 @@ class Logger {
 		 * @format The format string for the message.
 		 */
 		void debug(const char *format, ...);
+
+		/**
+		 * @brief Logs a message without logger info.
+		 *
+		 * @format The format string for the message.
+		 */
+		void verbatim(const char *format, ...);
 
 		/**
 		 * @brief Logs raw data.
