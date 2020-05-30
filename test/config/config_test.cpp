@@ -59,7 +59,7 @@ int main() {
     test("Get String", &test_get_string, NULL);
     test("Get Int", &test_get_int, NULL);
 
-    testlib_shutdown();
+    return (testlib_shutdown());
 
 //     if (config.getString("OtherSection", "this_config_key_name_is_far_longer_than_sixty_four_characters_and_thus_should_be_rejected_by_the_parser_lets_see_if_thats_what_actually_happens", testBuf, 256) == 0) {
 //         // Should reject too-long keys (sscanf fails)
@@ -72,6 +72,4 @@ int main() {
 //         return -1;
 //     }
 //     std::cout << "All tests passed!" << std::endl;
-
-    return (0);
 }

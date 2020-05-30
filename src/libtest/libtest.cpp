@@ -66,7 +66,7 @@ int testlib_shutdown() {
 			global_stats.num_pass, global_stats.num_fail,
 			global_stats.num_total);
 
-	return (0);
+	return (global_stats.num_fail);
 }
 
 int test(const char *test_name, int (*test_func)(void *), void *test_args) {
