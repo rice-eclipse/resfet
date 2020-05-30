@@ -21,7 +21,7 @@
 #define DASH_LEN 	128
 
 static test_stats global_stats = {0};
-static test_stats func_stats;
+static test_stats stats;
 
 static const char *test_suite_name;
 static char dashes[DASH_LEN];
@@ -69,13 +69,12 @@ int testlib_shutdown() {
 	return (0);
 }
 
-int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_args) {
+int test(const char *test_name, int (*test_func)(void *), void *test_args) {
 	int result;
-	test_stats stats = {0};
+	stats = {0};
 
-	// logger->verbatim("- Test: %.*s \n", TEST_LEN, test_name);
 	logger->verbatim("- Test: %.*s \n", TEST_LEN, test_name);
-	result = test_func(test_args, &stats);
+	result = test_func(test_args);
 
 	logger->verbatim("Summary: pass %d, fail %d, total %d\n\n",
 			stats.num_pass, stats.num_fail, stats.num_total);
@@ -88,92 +87,92 @@ int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_
 	return (result);
 }
 
-int assert_equals(int result, int expected, TestStats s, const char *assert_name) {
+int assert_equals(int result, int expected, const char *assert_name) {
 	if (result == expected) {
 		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, assert_name, result);
-		s->num_pass++;
+		stats.num_pass++;
 	} else {
 		logger->verbatim("\t Fail: %.*s. Expected %d but result was %d\n",
 				ASSERT_LEN, assert_name, expected, result);
-		s->num_fail++;
+		stats.num_fail++;
 	}
 
-	s->num_total++;
+	stats.num_total++;
 
 	return (result);
 }
 
-int assert_not_equals(int result, int expected, TestStats s, const char *assert_name) {
+int assert_not_equals(int result, int expected, const char *assert_name) {
 	if (result != expected) {
 		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, expected, result);
-		s->num_pass++;
+		stats.num_pass++;
 	} else {
 		logger->verbatim("\t Fail: %.*s. Expected %d but result was %d\n",
 				ASSERT_LEN, assert_name, expected, result);
-		s->num_fail++;
+		stats.num_fail++;
 	}
 
-	s->num_total++;
+	stats.num_total++;
 
 	return (result);
 }
 
-int assert_true(int result, TestStats s, const char *assert_name) {
+int assert_true(int result, const char *assert_name) {
 	if (result) {
 		logger->verbatim("\t Pass: %.*s\n", ASSERT_LEN, assert_name);
-		s->num_pass++;
+		stats.num_pass++;
 	} else {
 		logger->verbatim("\t Fail: %.*s\n", ASSERT_LEN, assert_name);
-		s->num_fail++;
+		stats.num_fail++;
 	}
 
-	s->num_total++;
+	stats.num_total++;
 
 	return (result);
 }
 
-int assert_false(int result, TestStats s, const char *assert_name) {
-	return (assert_true(!result, s, assert_name));
+int assert_false(int result, const char *assert_name) {
+	return (assert_true(!result, assert_name));
 }
 
-int assert_null(void *result, TestStats s, const char *assert_name) {
-	return (assert_true(result == NULL, s, assert_name));
+int assert_null(void *result, const char *assert_name) {
+	return (assert_true(result == NULL, assert_name));
 }
 
-int assert_not_null(void *result, TestStats s, const char *assert_name) {
-	return (assert_true(result != NULL, s, assert_name));
+int assert_not_null(void *result, const char *assert_name) {
+	return (assert_true(result != NULL, assert_name));
 }
 
-int assert_string_equals(const char *result, const char *expected, int len, TestStats s, const char *assert_name) {
+int assert_string_equals(const char *result, const char *expected, int len, const char *assert_name) {
 	int ret; 
 
 	if ((ret = strncmp(result, expected, len)) == 0) {
 		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, assert_name, result);
-		s->num_pass++;
+		stats.num_pass++;
 	} else {
 		logger->verbatim("\t Fail: %.*s. Expected %s but result was %s\n",
 				ASSERT_LEN, assert_name, expected, result);
-		s->num_fail++;
+		stats.num_fail++;
 	}
 
-	s->num_total++;
+	stats.num_total++;
 
 	return (ret);
 }
 
-int assert_string_not_equals(const char *result, const char *expected, int len, TestStats s, const char *assert_name) {
+int assert_string_not_equals(const char *result, const char *expected, int len, const char *assert_name) {
 	int ret;
 
 	if ((ret = strncmp(result, expected, len)) != 0) {
 		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, expected, result);
-		s->num_pass++;
+		stats.num_pass++;
 	} else {
 		logger->verbatim("\t Fail: %.*s. Expected %d but result was %d\n",
 				ASSERT_LEN, assert_name, expected, result);
-		s->num_fail++;
+		stats.num_fail++;
 	}
 
-	s->num_total++;
+	stats.num_total++;
 
 	return (ret);
 }
