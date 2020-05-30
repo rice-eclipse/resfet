@@ -82,4 +82,25 @@ int assert_null(void *result, TestStats, const char *assert_name);
  */
 int assert_not_null(void *result, TestStats, const char *assert_name);
 
+/**
+ * @brief Asserts the result string matches the expected string.
+ *
+ * @result The result string to be checked.
+ * @expected The expected string.
+ * @len The maximum length of the comparison.
+ * @TestStats The statistics  for this test suite/file.
+ * @assert_name The name of this assertion.
+ */
+int assert_string_equals(const char *result, const char *expected, int len, TestStats s, const char *assert_name); 
+/**
+ * @brief Asserts the result string matches the expected string.
+ *
+ * @result The result string to be checked.
+ * @expected The expected string.
+ * @len The maximum length of the comparison.
+ * @TestStats The statistics  for this test suite/file.
+ * @assert_name The name of this assertion.
+ */
+int assert_string_not_equals(const char *result, const char *expected, int len, TestStats s, const char *assert_name); 
+
 #endif
