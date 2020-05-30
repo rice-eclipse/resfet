@@ -5,7 +5,7 @@ project(resfet)
 
 # Include the header files
 include_directories(include)
-include_directories(test/libtest)
+# include_directories(test/libtest)
 
 # Add the directories for source code
 add_subdirectory(src/networking)

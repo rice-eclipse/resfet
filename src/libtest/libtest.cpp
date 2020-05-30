@@ -12,30 +12,59 @@
 #include <assert.h>
 #include <string.h>
 
+#include "logger/logger.hpp"
 #include "libtest/libtest.hpp"
 
-// TODO use the logger.
-// specify log level in command line
-// pretty printing
+#define SUITE_LEN 	32
+#define TEST_LEN 	32
+#define ASSERT_LEN 	32
+#define DASH_LEN 	128
 
 static test_stats global_stats = {0};
 static test_stats func_stats;
 
 static const char *test_suite_name;
+static char dashes[DASH_LEN];
+
+static Logger *logger;
+
+int create_dashes(int len) {
+	int i;
+
+	if (len > DASH_LEN) {
+		return (1);
+	}
+
+	// Create a buffer of dashes
+	for (i = 0; i < len; i++) {
+		dashes[i] = '-';
+	}
+	dashes[i] = '\0';
+
+	return (0);
+}
 
 int testlib_init(const char *suite_name) {
 	test_suite_name = suite_name;
 
-	printf("BEGIN SUITE %.32s\n", test_suite_name);
-	printf("Log file is %.32s\n", "TODO");
+	logger = new Logger("Test Logger", test_suite_name, LogLevel::DEBUG);	
+
+	// Length of dashes will be the max of the two lengths
+	create_dashes(strlen("Test Suite: ") + strlen(test_suite_name));
+	// create_dashes(strlen("Log file: ") + strlen(logger->getFilename()));
+
+	logger->verbatim("%s\n", dashes);
+	logger->verbatim("Test Suite: %.*s\n", SUITE_LEN, test_suite_name);
+	// logger->verbatim("Log file: %s\n", logger->getFilename());
+	logger->verbatim("%s\n", dashes);
 
 	return (0);
 }
 
 int testlib_shutdown() {
-	printf("END SUITE %.32s. pass %d, fail %d, total %d\n",
-			test_suite_name,global_stats.num_pass,
-			global_stats.num_fail, global_stats.num_total);
+	logger->verbatim("Global Summary: pass %d, fail %d, total %d\n",
+			global_stats.num_pass, global_stats.num_fail,
+			global_stats.num_total);
 
 	return (0);
 }
@@ -44,11 +73,11 @@ int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_
 	int result;
 	test_stats stats = {0};
 
-	printf("BEGIN TEST %.32s: %.32s\n", test_suite_name, test_name);
+	// logger->verbatim("- Test: %.*s \n", TEST_LEN, test_name);
+	logger->verbatim("- Test: %.*s \n", TEST_LEN, test_name);
 	result = test_func(test_args, &stats);
 
-	printf("END TEST %.32s: %.32s. pass %d, fail %d, total %d\n",
-			test_suite_name, test_name,
+	logger->verbatim("Summary: pass %d, fail %d, total %d\n\n",
 			stats.num_pass, stats.num_fail, stats.num_total);
 
 
@@ -61,11 +90,11 @@ int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_
 
 int assert_equals(int result, int expected, TestStats s, const char *assert_name) {
 	if (result == expected) {
-		printf("\t Pass: %.32s.\n", assert_name, result);
+		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, assert_name, result);
 		s->num_pass++;
 	} else {
-		printf("\t Fail: %.32s. Expected %d but result was %d\n",
-				assert_name, expected, result);
+		logger->verbatim("\t Fail: %.*s. Expected %d but result was %d\n",
+				ASSERT_LEN, assert_name, expected, result);
 		s->num_fail++;
 	}
 
@@ -76,11 +105,11 @@ int assert_equals(int result, int expected, TestStats s, const char *assert_name
 
 int assert_not_equals(int result, int expected, TestStats s, const char *assert_name) {
 	if (result != expected) {
-		printf("\t Pass: %.32s.\n", expected, result);
+		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, expected, result);
 		s->num_pass++;
 	} else {
-		printf("\t Fail: %.32s. Expected %d but result was %d\n",
-				assert_name, expected, result);
+		logger->verbatim("\t Fail: %.*s. Expected %d but result was %d\n",
+				ASSERT_LEN, assert_name, expected, result);
 		s->num_fail++;
 	}
 
@@ -91,10 +120,10 @@ int assert_not_equals(int result, int expected, TestStats s, const char *assert_
 
 int assert_true(int result, TestStats s, const char *assert_name) {
 	if (result) {
-		printf("\t Pass: %.32s\n", assert_name);
+		logger->verbatim("\t Pass: %.*s\n", ASSERT_LEN, assert_name);
 		s->num_pass++;
 	} else {
-		printf("\t Fail: %.32s\n", assert_name);
+		logger->verbatim("\t Fail: %.*s\n", ASSERT_LEN, assert_name);
 		s->num_fail++;
 	}
 
@@ -119,11 +148,11 @@ int assert_string_equals(const char *result, const char *expected, int len, Test
 	int ret; 
 
 	if ((ret = strncmp(result, expected, len)) == 0) {
-		printf("\t Pass: %.32s.\n", assert_name, result);
+		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, assert_name, result);
 		s->num_pass++;
 	} else {
-		printf("\t Fail: %.32s. Expected %s but result was %s\n",
-				assert_name, expected, result);
+		logger->verbatim("\t Fail: %.*s. Expected %s but result was %s\n",
+				ASSERT_LEN, assert_name, expected, result);
 		s->num_fail++;
 	}
 
@@ -136,11 +165,11 @@ int assert_string_not_equals(const char *result, const char *expected, int len, 
 	int ret;
 
 	if ((ret = strncmp(result, expected, len)) != 0) {
-		printf("\t Pass: %.32s.\n", expected, result);
+		logger->verbatim("\t Pass: %.*s.\n", ASSERT_LEN, expected, result);
 		s->num_pass++;
 	} else {
-		printf("\t Fail: %.32s. Expected %d but result was %d\n",
-				assert_name, expected, result);
+		logger->verbatim("\t Fail: %.*s. Expected %d but result was %d\n",
+				ASSERT_LEN, assert_name, expected, result);
 		s->num_fail++;
 	}
 

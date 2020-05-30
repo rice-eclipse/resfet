@@ -54,8 +54,8 @@ int Logger::create_log_file() {
 
 	char time_buf[MAX_TIME_BUF_LEN];
 
-    /* Set start time of RESFET and get the formatted name into time_buf. */
-    set_start_time();
+        /* Set start time of RESFET and get the formatted name into time_buf. */
+        set_start_time();
 	get_formatted_time(time_buf);
 
 	/* Create the logs directory if it does not exist */
@@ -87,6 +87,10 @@ int Logger::create_log_file() {
 	}
 
 	return 0;
+}
+
+char *Logger::getFilename() {
+	return filename;
 }
 
 void Logger::log(const char *format, LogLevel level, va_list argList) {
@@ -135,6 +139,32 @@ void Logger::debug(const char *format, ...) {
 	va_start(argList, format);
 	log(format, LogLevel::DEBUG, argList);
 	va_end(argList);
+}
+
+void Logger::verbatim(const char *format, ...) {
+	/* Check the log file exists */
+	if (file_fd == -1) {
+		dprintf(STDERR_FILENO, "Attempting to log when log file is null\n");
+		return;
+	}
+
+	/* Pass in the format string and variable args */
+	va_list argList;
+	va_start(argList, format);
+
+	/* Save the formatted message in the internal buffer */
+	vsnprintf(buf, MAX_BUF_LEN, format, argList);
+
+	va_end(argList);
+
+	/* Null-terminate the buffer, for safety */
+	buf[MAX_BUF_LEN - 1] = '\0';
+
+	/* Write the formatted message, and other information, to the log file */	
+	dprintf(file_fd, "%s", buf);
+	
+	/* Write to stdout */
+	dprintf(STDOUT_FILENO, "%s", buf);
 }
 
 void Logger::data(uint8_t *data, size_t size) {
