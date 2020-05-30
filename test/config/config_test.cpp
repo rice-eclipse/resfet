@@ -25,30 +25,30 @@ int test_read_from() {
 	return (0);
 }
 
-int test_get_string(void *args, TestStats s) {
-    assert_equals(config.readFrom("./config_test.ini"), 0, s, "Read from config_test.ini");
+int test_get_string(void *args) {
+    assert_equals(config.readFrom("./config_test.ini"), 0, "Read from config_test.ini");
 
     assert_equals(config.getString("", "spaghetti", testBuf, 128), 0,
-		    s, "Get spaghetti key");
-    assert_string_equals(testBuf, "meatballs", MAX_CONFIG_LENGTH, s, "Check spaghetti value");
+		    "Get spaghetti key");
+    assert_string_equals(testBuf, "meatballs", MAX_CONFIG_LENGTH, "Check spaghetti value");
 
     // TODO this segfaults
     // assert_equals(config.getString("Section", "foo", testBuf, 128), 0,
-    //      	    s, "Get key foo from Section");
-    // assert_equals(std::strcmp(testBuf, ""), 0, s, "Check foo value");
+    //      	    "Get key foo from Section");
+    // assert_equals(std::strcmp(testBuf, ""), 0, "Check foo value");
 
     assert_equals(config.getString("OtherSection", "something", testBuf, 128), 0,
-		    s, "Get key something from OtherSection");
+		    "Get key something from OtherSection");
     assert_string_equals(testBuf, "something", MAX_CONFIG_LENGTH,
-		    s, "Check something value");
+		    "Check something value");
 
     return (0);
 }
 
-int test_get_int(void *args, TestStats s) {
+int test_get_int(void *args) {
     assert_equals(config.getInt("Section", "x", &testInt), 0,
-		    s, "Get key x from Section");
-    assert_equals(testInt, 512, s, "Check x value");
+		    "Get key x from Section");
+    assert_equals(testInt, 512, "Check x value");
 
     return (0);
 }

@@ -34,7 +34,7 @@ int testlib_shutdown();
  *
  * @test_func The function containing the tests. 
  */
-int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_args);
+int test(const char *test_name, int (*test_func)(void *), void *test_args);
 
 /**
  * @brief Asserts the result matches the expected result.
@@ -44,7 +44,7 @@ int test(const char *test_name, int (*test_func)(void *, TestStats), void *test_
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_equals(int result, int expected, TestStats, const char *assert_name);
+int assert_equals(int result, int expected, const char *assert_name);
 
 /**
  * @brief Asserts the result is true.
@@ -53,7 +53,7 @@ int assert_equals(int result, int expected, TestStats, const char *assert_name);
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_true(int result, TestStats, const char *assert_name);
+int assert_true(int result, const char *assert_name);
 
 /**
  * @brief Asserts the result is false.
@@ -62,7 +62,7 @@ int assert_true(int result, TestStats, const char *assert_name);
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_false(int result, TestStats, const char *assert_name);
+int assert_false(int result, const char *assert_name);
 
 /**
  * @brief Asserts the result is null.
@@ -71,7 +71,7 @@ int assert_false(int result, TestStats, const char *assert_name);
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_null(void *result, TestStats, const char *assert_name);
+int assert_null(void *result, const char *assert_name);
 
 /**
  * @brief Asserts the result is not null.
@@ -80,7 +80,7 @@ int assert_null(void *result, TestStats, const char *assert_name);
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_not_null(void *result, TestStats, const char *assert_name);
+int assert_not_null(void *result, const char *assert_name);
 
 /**
  * @brief Asserts the result string matches the expected string.
@@ -91,7 +91,7 @@ int assert_not_null(void *result, TestStats, const char *assert_name);
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_string_equals(const char *result, const char *expected, int len, TestStats s, const char *assert_name); 
+int assert_string_equals(const char *result, const char *expected, int len, const char *assert_name); 
 /**
  * @brief Asserts the result string matches the expected string.
  *
@@ -101,6 +101,6 @@ int assert_string_equals(const char *result, const char *expected, int len, Test
  * @TestStats The statistics  for this test suite/file.
  * @assert_name The name of this assertion.
  */
-int assert_string_not_equals(const char *result, const char *expected, int len, TestStats s, const char *assert_name); 
+int assert_string_not_equals(const char *result, const char *expected, int len, const char *assert_name); 
 
 #endif
