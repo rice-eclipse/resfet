@@ -15,6 +15,9 @@ script:
     - cd build
     - cmake ..
     - make
+    # TODO have a way to autorun all tests
+    - cd test/config
+    - ./config_test
 
 notifications:
   slack: riceeclipse:gkom2AO57EGZmxU2wWPEtyR2
