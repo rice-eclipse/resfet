@@ -1,6 +1,6 @@
-cmake_minimum_required (VERSION 2.8.7)
+cmake_minimum_required (VERSION 3.03)
 add_compile_options(-std=c++11 -fprofile-arcs -ftest-coverage)
-add_link_options(-fprofile-arcs -ftest-coverage)
+# add_link_options(-fprofile-arcs -ftest-coverage)
 # add_compile_options(-std=c++11 -Werror -Wall -Wextra)
 project(resfet)
 
@@ -26,7 +26,6 @@ include(CTest)
 add_subdirectory(test/config)
 
 # Create custom target for coverage testing
-set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON) # For correct gcov extensions
 file(MAKE_DIRECTORY coverage)
 add_custom_target(coverage)
 add_dependencies(coverage config_coverage) # TODO add other testing targets here

@@ -8,6 +8,7 @@ addons:
             - ubuntu-toolchain-r-test
         packages:
             - cmake
+            - gcc-5-alpha-linux-gnu
 
 script:
     - ./install_dependencies.sh
@@ -15,7 +16,8 @@ script:
     - cd build
     - cmake ..
     - make
-    - ctest --verbose --test-timeout 120 --output-on-failure -O ../testing_log
+    - ctest --verbose --test-timeout 10 --output-on-failure -O ../testing_log
+    - make coverage
 
 notifications:
   slack: riceeclipse:gkom2AO57EGZmxU2wWPEtyR2

@@ -10,8 +10,14 @@ set_tests_properties(${TEST_NAME} PROPERTIES LABELS CONFIG_PARSER)
 
 # Copy the resources (.ini) files to the output directory
 # TODO if there are multiple .ini test inputs, add them here
+# TODO the mvs are necessary because gcov expects different file extensions
 add_custom_command(TARGET ${TEST_NAME} POST_BUILD
 		   COMMAND cp config_test.ini "${CMAKE_CURRENT_BINARY_DIR}/"
+		   COMMAND cp bad_config.ini "${CMAKE_CURRENT_BINARY_DIR}/"
+	           COMMAND mv ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/${TEST_NAME}.cpp.gcno ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/${TEST_NAME}.gcno 
+	           COMMAND mv ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/${TEST_NAME}.cpp.gcda ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/${TEST_NAME}.gcda 
+		   COMMAND mv ${CMAKE_BINARY_DIR}/src/${TEST_PREFIX}/CMakeFiles/${TEST_PREFIX}.dir/${TEST_PREFIX}.cpp.gcno ${CMAKE_BINARY_DIR}/src/${TEST_PREFIX}/CMakeFiles/${TEST_PREFIX}.dir/${TEST_PREFIX}.gcno
+		   COMMAND mv ${CMAKE_BINARY_DIR}/src/${TEST_PREFIX}/CMakeFiles/${TEST_PREFIX}.dir/${TEST_PREFIX}.cpp.gcda ${CMAKE_BINARY_DIR}/src/${TEST_PREFIX}/CMakeFiles/${TEST_PREFIX}.dir/${TEST_PREFIX}.gcda
 		   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_custom_target(${TEST_PREFIX}_coverage
@@ -20,7 +26,7 @@ add_custom_target(${TEST_PREFIX}_coverage
 
 add_custom_command(TARGET ${TEST_PREFIX}_coverage POST_BUILD
                    COMMAND echo gcov -o ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/ ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp
-                   COMMAND gcov -o "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/" "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp" | grep -A 1 ${TEST_NAME} > summary
+                   COMMAND gcov -o ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${TEST_NAME}.dir/ ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp | grep -A 1 ${TEST_NAME} > summary
                    COMMAND echo gcov -o ${CMAKE_BINARY_DIR}/src/${TEST_PREFIX}/CMakeFiles/${TEST_PREFIX}.dir ${CMAKE_SOURCE_DIR}/src/${TEST_PREFIX}/${TEST_PREFIX}.cpp
                    COMMAND gcov -o ${CMAKE_BINARY_DIR}/src/${TEST_PREFIX}/CMakeFiles/${TEST_PREFIX}.dir ${CMAKE_SOURCE_DIR}/src/${TEST_PREFIX}/${TEST_PREFIX}.cpp | grep -A 1 ${TEST_PREFIX} >> summary
                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/coverage)
