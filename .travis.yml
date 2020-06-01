@@ -15,9 +15,7 @@ script:
     - cd build
     - cmake ..
     - make
-    # TODO have a way to autorun all tests
-    - cd test/config
-    - ./config_test
+    - ctest --verbose --test-timeout 120 --output-on-failure -O ../testing_log
 
 notifications:
   slack: riceeclipse:gkom2AO57EGZmxU2wWPEtyR2
