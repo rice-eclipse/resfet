@@ -1,7 +1,7 @@
-cmake_minimum_required (VERSION 3.03)
+cmake_minimum_required (VERSION 3.12)
 add_compile_options(-std=c++11 -fprofile-arcs -ftest-coverage)
-# add_link_options(-fprofile-arcs -ftest-coverage)
 # add_compile_options(-std=c++11 -Werror -Wall -Wextra)
+set(CMAKE_EXE_LINKER_FLAGS "-lgcov -fprofile-arcs -ftest-coverage")
 project(resfet)
 
 # Include the header files
