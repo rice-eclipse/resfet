@@ -27,13 +27,9 @@ static std::string key_value_format_str = "%"
 									  	+ "[^=]=%"
 									  	+ std::to_string(MAX_CONFIG_LENGTH)
 									  	+ "s";
-static std::string undef_key_format_str = "%"
-										+ std::to_string(MAX_CONFIG_LENGTH)
-										+ "[^=]=";
 
 static const char* header_format = header_format_str.c_str();
 static const char* key_value_format = key_value_format_str.c_str();
-static const char* undef_key_format = undef_key_format_str.c_str();
 
 ConfigMapping::ConfigMapping() {
 	// Create blank private mapping
@@ -56,12 +52,12 @@ uint8_t ConfigMapping::readFrom(const char* filename) {
 		#ifdef __EXTRA_DEBUG_LOG
 			std::cerr << "Unable to open config file " << filename << std::endl;
 		#endif
+		map.clear();
 		return 1;
 	}
 
 	// Clear out mapping
-	map = std::unordered_map<std::string,
-							 std::unordered_map<std::string, std::vector<std::string>>>();
+	map.clear();
 
 	while (!file.eof()) {
 		file.getline(line, MAX_LINE_LENGTH);
@@ -73,7 +69,6 @@ uint8_t ConfigMapping::readFrom(const char* filename) {
 			continue;
 
 		// Encountered a line that is too long or otherwise failed to read.
-		// File stream is compromised, so stop
 		if (file.fail()) {
 			#ifdef __EXTRA_DEBUG_LOG
 				std::cerr << "Line " << line_count
@@ -81,6 +76,7 @@ uint8_t ConfigMapping::readFrom(const char* filename) {
 						<< std::endl;
 			#endif
 			file.close();
+			map.clear();
 			return 1;
 		}
 
@@ -92,16 +88,15 @@ uint8_t ConfigMapping::readFrom(const char* filename) {
 			if (!isPresent(current_section, key))
 				map[current_section][key] = std::vector<std::string>();
 			map[current_section][key].push_back(value);
-		// Attempt to match an undefined key
-		} else if (sscanf(line, undef_key_format, key) == 1) {
-			// TODO: this is intended for `foo=`, check for just `foo` with no equals sign
-			map[current_section][key] = std::vector<std::string>();
 		// No match found, line is malformed; skip it
 		} else {
 			#ifdef __EXTRA_DEBUG_LOG
 				std::cerr << "Malformed config line " << line_count
 						<< ": `" << line << "`, line is skipped" << std::endl;
 			#endif
+			file.close();
+			map.clear();
+			return 1;
 		}
 	}
 
@@ -116,6 +111,10 @@ uint8_t ConfigMapping::writeTo(const char* filename) {
 }
 
 bool ConfigMapping::isPresent(const char* section, const char* key) {
+	if (section == NULL || key == NULL) {
+		return false;
+	}
+
 	if (map.find(section) == map.end()) {
 		return false;
 	}

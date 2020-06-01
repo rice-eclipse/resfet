@@ -20,9 +20,12 @@ ConfigMapping config;
 char testBuf[256];
 uint32_t testInt;
 
-int test_read_from() {
-	// TODO test malformed config files
-	return (0);
+int test_bad_config(void *args) {
+    assert_equals(config.readFrom("./bad_config.ini"), 1, "Read from bad_config.ini");
+
+    assert_equals(config.getString("", "a", testBuf, 128), 1,
+		    "Can't read from bad_config.ini");
+    return (0);
 }
 
 int test_get_string(void *args) {
@@ -32,10 +35,9 @@ int test_get_string(void *args) {
 		    "Get spaghetti key");
     assert_string_equals(testBuf, "meatballs", MAX_CONFIG_LENGTH, "Check spaghetti value");
 
-    // TODO this segfaults
-    // assert_equals(config.getString("Section", "foo", testBuf, 128), 0,
-    //      	    "Get key foo from Section");
-    // assert_equals(std::strcmp(testBuf, ""), 0, "Check foo value");
+    assert_equals(config.getString("Section", "foo", testBuf, 128), 0,
+         	    "Get key foo from Section");
+    assert_equals(std::strcmp(testBuf, "bar"), 0, "Check foo value");
 
     assert_equals(config.getString("OtherSection", "something", testBuf, 128), 0,
 		    "Get key something from OtherSection");
@@ -50,26 +52,19 @@ int test_get_int(void *args) {
 		    "Get key x from Section");
     assert_equals(testInt, 512, "Check x value");
 
+	assert_equals(config.getInt("OtherSection", "pi", &testInt), 0,
+					"Get key pi from OtherSection");
+	assert_equals(testInt, 314159, "Check pi value");
+
     return (0);
 }
 
 int main() {
     testlib_init("Config Parser");
 
+    test ("readFrom", &test_bad_config, NULL);
     test("Get String", &test_get_string, NULL);
     test("Get Int", &test_get_int, NULL);
 
     return (testlib_shutdown());
-
-//     if (config.getString("OtherSection", "this_config_key_name_is_far_longer_than_sixty_four_characters_and_thus_should_be_rejected_by_the_parser_lets_see_if_thats_what_actually_happens", testBuf, 256) == 0) {
-//         // Should reject too-long keys (sscanf fails)
-//         std::cerr << "Accepted a key that is ridiculously long" << std::endl;
-//         return -1;
-//     }
-//     // Above line has a fatal error, rest of file should be absent from map
-//     if (config.getInt("OtherSection", "pi", &testInt) == 0) {
-//         printKeySuccess("pi");
-//         return -1;
-//     }
-//     std::cout << "All tests passed!" << std::endl;
 }
