@@ -33,15 +33,13 @@ enum LogLevel {
 	ERROR = 1,
 	INFO = 2,
 	DEBUG = 3,
-	VERBATIM = 4
 };
 
-const char LogLevelStrings[][9] ={
+const char LogLevelStrings[][7] ={
 	"SILENT",
 	"ERROR",
 	"INFO",
-	"DEBUG",
-	"VERBATIM"
+	"DEBUG"
 };
 
 /**
