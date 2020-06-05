@@ -17,3 +17,7 @@ cmake-build-debug
 
 # BCM downloaded files
 bcm2835-*
+
+# gcov files
+*.gcda
+*.gcno
