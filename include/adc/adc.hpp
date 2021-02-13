@@ -38,16 +38,19 @@ struct adc_info {
  * array indexes.
  */
 enum SENSOR: uint8_t {
-		LC_MAIN = 0,
-		LC1,
+		LC1 = 0,
 		LC2,
 		LC3,
-		PT_COMBUSTION,
-		PT_INJECTOR,
-		PT_FEED,
+		LC4,
+		LC5,
+		PT1,
+		PT2,
+		PT3,
+		PT4,
 		TC1,
 		TC2,
 		TC3,
+		TC4,
 		NUM_SENSORS
 };
 

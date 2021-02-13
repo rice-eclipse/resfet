@@ -29,31 +29,37 @@ RPiGPIOPin SENSOR_PINS[SENSOR::NUM_SENSORS] = {
 	RPI_GPIO_P1_22,
 	RPI_GPIO_P1_22,
 	RPI_GPIO_P1_22,
+	RPI_GPIO_P1_22,
 	
 	// PTs
 	RPI_GPIO_P1_24,
 	RPI_GPIO_P1_24,
 	RPI_GPIO_P1_24,
+	RPI_GPIO_P1_24,
 
 	// TCs
-	RPI_GPIO_P1_24,
-	RPI_GPIO_P1_24,
-	RPI_GPIO_P1_24
+	RPI_GPIO_P1_26,
+	RPI_GPIO_P1_26,
+	RPI_GPIO_P1_26,
+	RPI_GPIO_P1_26
 };
 
 uint8_t SENSOR_CHANNELS[NUM_SENSORS] = {
-	0, // LC_MAIN
-	1, // LC1
-	3, // LC2
-	4, // LC3
+	0, // LC1 (prev. LC_MAIN)
+	1, // LC2
+	2, // LC3
+	3, // LC4
+	4, // LC5
 
-	2, // PT_COMBUSTION
+	0, // PT_COMBUSTION
 	1, // PT_INJECTOR
-	0, // PT_FEED
+	2, // PT_FEED
+	3, // PT_
 
-	4, // TC1
-	5, // TC2
-	6  // TC3
+	0, // TC1
+	1, // TC2
+	2, // TC3
+	3  // TC4
 };
 
 uint16_t SENSOR_FREQS[NUM_SENSORS] = {
@@ -61,25 +67,31 @@ uint16_t SENSOR_FREQS[NUM_SENSORS] = {
 	2000,
 	2000,
 	2000,
+	2000,
 	500,
 	500,
 	500,
+	500,
+	20,
 	20,
 	20,
 	20
 };
 
 char SENSOR_NAMES[NUM_SENSORS][20] = {
-	"LC_MAIN",
 	"LC1",
 	"LC2",
 	"LC3",
-	"PT_COMBUSTION",
-	"PT_INJECTOR",
-	"PT_FEED",
+	"LC4",
+	"LC5",
+	"PT1",
+	"PT2",
+	"PT3",
+	"PT4",
 	"TC1",
 	"TC2",
-	"TC3"
+	"TC3",
+	"TC4"
 };
 
 adc_reader::adc_reader() {

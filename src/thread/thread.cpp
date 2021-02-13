@@ -115,7 +115,7 @@ static void *threadFunc(adc_reader reader, std::vector<Logger>* loggers,
 			reading = reader.read_item(it->sensor);
 #endif
                         // Include the reading in the running average
-			if (it->sensor == PT_COMBUSTION) {
+			if (it->sensor == PT1) {
 			        double converted = pressureSlope * 
                                     reading + pressureYint;
 				combAvg = combAvg * 0.95 + converted * 0.05;
