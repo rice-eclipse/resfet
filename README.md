@@ -27,14 +27,19 @@ Install the required dependencies:
 sudo ./install_dependencies.sh
 ```
 
-Build the software:
+Perform full build (runs both cmake and then make):
 ```bash
-./autobuild.sh
+./make_force.sh
 ```
 
 Run the software:
 ```bash
-build/resfet
+./build/resfet config.ini
+```
+
+If there's any change in the source code that doesn't require full cmake routine, then run:
+```bash
+./make_build.sh
 ```
 
 ### License
