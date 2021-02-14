@@ -149,13 +149,15 @@ int main(int argc, char **argv) {
     Tcp::ConnSocket coSock;
 
     WorkerVisitor *visitor;
-    config_map.getBool("", "engine_type", &engine_type);
+    config_map.getBool("Main", "engine_type", &engine_type);
     if (engine_type == LUNA) {
+        printf("Starting LUNA visitor\n");
 	    visitor = new LunaVisitor(config_map);
 #ifndef MOCK
 	    initialize_pins();
 #endif
     } else {
+        printf("Starting TITAN visitor\n");
 	    visitor = new TitanVisitor(config_map);
 #ifndef MOCK
 	    titan_initialize_pins();
