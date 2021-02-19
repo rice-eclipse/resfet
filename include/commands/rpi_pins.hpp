@@ -30,21 +30,17 @@
 #define DRIVER5 RPI_V2_GPIO_P1_33
 #define DRIVER6 RPI_V2_GPIO_P1_32
 
-// Definitions for common valves and ignition.
-#define VALVE1 DRIVER1
-#define VALVE2 DRIVER2
-#define VALVE3 DRIVER3
+// defines for Luna
+#define MAIN_VALVE DRIVER1
+#define PRESSURE_VALVE DRIVER2
+#define GITVC_VALVE DRIVER3
 #define IGN_START DRIVER6
 
-// defines for Luna
-#define MAIN_VALVE VALVE1
-#define WATER_VALVE VALVE2
-#define GITVC_VALVE VALVE3
-
 // defines for Titan
-#define MAIN_VALVE VALVE1
-#define VENT_VALVE VALVE2
-#define TANK_VALVE VALVE3
-#define HEATING_TAPE RPI_V2_GPIO_P1_15
+#define MAIN_VALVE DRIVER1
+#define VENT_VALVE DRIVER2
+#define TANK_VALVE DRIVER3
+#define HEATING_TAPE DRIVER4
+#define IGN_START DRIVER6
 
 #endif // __RPI_PINS_HPP

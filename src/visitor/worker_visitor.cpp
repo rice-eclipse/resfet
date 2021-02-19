@@ -26,24 +26,38 @@
 static void ignThreadFunc(timestamp_t, timestamp_t, timestamp_t, bool);
 
 const char *command_names[NUM_COMMANDS] = {
-    "UNSET_VALVE1",
-    "SET_VALVE",
-    "UNSET_VALVE",
-    "SET_VALVE",
-    "UNSET_VALVE",
-    "SET_VALVE",
-    "UNSET_IGNITION",
-    "SET_IGNITION",
-    "SET_WATER",
-    "UNSET_WATER",
-    "SET_GITVC",
-    "UNSET_GITVC",
-    "LEAK_CHECK",
-    "FILL",
-    "FILL_IDLE",
-    "TAPE_ON",
-    "TAPE_OFF",
-    "DEF"
+    "UNSET_DRIVER1",
+    "SET_DRIVER1",
+    "UNSET_DRIVER2",
+    "SET_DRIVER2",
+    "UNSET_DRIVER3",
+    "SET_DRIVER3",
+    "UNSET_DRIVER4",
+    "SET_DRIVER4",
+    "UNSET_DRIVER5",
+    "SET_DRIVER5",
+	"UNSET_DRIVER6",
+    "SET_DRIVER6",
+	"STOP_IGNITION", // Analogous to UNSET_DRIVER6
+    "START_IGNITION", // Analogous to SET_DRIVER6
+	"TITAN_LEAK_CHECK",
+    "TITAN_FILL",
+    "TITAN_FILL_IDLE",
+    "TITAN_TAPE_ON",
+    "TITAN_TAPE_OFF",
+    "TITAN_DEF",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED",
+	"RESERVED"   
 };
 
 WorkerVisitor::WorkerVisitor()
@@ -106,7 +120,7 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
         while (timeElapsed < time) {
             // Check if the main valve should be opened
             if (!mainOpen && timeElapsed > preigniteTime) {
-                bcm2835_gpio_write(VALVE1, HIGH);
+                bcm2835_gpio_write(MAIN_VALVE, HIGH);
                 mainOpen = true;
                 ignThreadLogger.info("Preignite time elapsed, opening main valve.\n");
             }
@@ -130,7 +144,7 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
         }
 
         // Burn time has elapsed, shut it off and indicate
-        bcm2835_gpio_write(VALVE1, LOW);
+        bcm2835_gpio_write(MAIN_VALVE, LOW);
         bcm2835_gpio_write(IGN_START, LOW);
         ignitionOn.store(false);
         mainOpen = false;
@@ -143,34 +157,64 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
 
 void WorkerVisitor::visitCommand(COMMAND c) {
     switch (c) {
-        case UNSET_VALVE1: {
-	    logger.info("Writing valve 1 off using pin %d\n", VALVE1);
-            bcm2835_gpio_write(VALVE1, LOW);
+        case UNSET_DRIVER1: {
+	    logger.info("Writing driver 1 off using pin %d\n", DRIVER1);
+            bcm2835_gpio_write(DRIVER1, LOW);
             break;
         }
-        case SET_VALVE1: {
-	    logger.info("Writing valve 1 on using pin %d\n", VALVE1);
-            bcm2835_gpio_write(VALVE1, HIGH);
+        case SET_DRIVER1: {
+	    logger.info("Writing driver 1 on using pin %d\n", DRIVER1);
+            bcm2835_gpio_write(DRIVER1, HIGH);
             break;
         }
-        case UNSET_VALVE2: {
-	    logger.info("Writing valve 2 off using pin %d\n", VALVE2);
-            bcm2835_gpio_write(VALVE2, LOW);
+        case UNSET_DRIVER2: {
+	    logger.info("Writing driver 2 off using pin %d\n", DRIVER2);
+            bcm2835_gpio_write(DRIVER2, LOW);
             break;
         }
-        case SET_VALVE2: {
-	    logger.info("Writing valve 2 on using pin %d\n", VALVE2);
-            bcm2835_gpio_write(VALVE2, HIGH);
+        case SET_DRIVER2: {
+	    logger.info("Writing driver 2 on using pin %d\n", DRIVER2);
+            bcm2835_gpio_write(DRIVER2, HIGH);
             break;
         }
-        case UNSET_VALVE3: {
-	    logger.info("Writing valve 3 off using pin %d\n", VALVE3);
-            bcm2835_gpio_write(MAIN_VALVE, LOW);
+        case UNSET_DRIVER3: {
+	    logger.info("Writing driver 3 off using pin %d\n", DRIVER3);
+            bcm2835_gpio_write(DRIVER3, LOW);
             break;
         }
-        case SET_VALVE3: {
-	    logger.info("Writing valve 3 on using pin %d\n", VALVE3);
-            bcm2835_gpio_write(VALVE3, HIGH);
+        case SET_DRIVER3: {
+	    logger.info("Writing driver 3 on using pin %d\n", DRIVER3);
+            bcm2835_gpio_write(DRIVER3, HIGH);
+            break;
+        }
+        case UNSET_DRIVER4: {
+	    logger.info("Writing driver 4 off using pin %d\n", DRIVER4);
+            bcm2835_gpio_write(DRIVER4, LOW);
+            break;
+        }
+        case SET_DRIVER4: {
+	    logger.info("Writing driver 4 on using pin %d\n", DRIVER4);
+            bcm2835_gpio_write(DRIVER4, HIGH);
+            break;
+        }
+        case UNSET_DRIVER5: {
+	    logger.info("Writing driver 5 off using pin %d\n", DRIVER5);
+            bcm2835_gpio_write(DRIVER5, LOW);
+            break;
+        }
+        case SET_DRIVER5: {
+	    logger.info("Writing driver 5 on using pin %d\n", DRIVER5);
+            bcm2835_gpio_write(DRIVER5, HIGH);
+            break;
+        }
+        case UNSET_DRIVER6: {
+	    logger.info("Writing driver 6 off using pin %d\n", DRIVER6);
+            bcm2835_gpio_write(DRIVER6, LOW);
+            break;
+        }
+        case SET_DRIVER6: {
+	    logger.info("Writing driver 6 on using pin %d\n", DRIVER6);
+            bcm2835_gpio_write(DRIVER6, HIGH);
             break;
         }
         case START_IGNITION: {
@@ -184,7 +228,7 @@ void WorkerVisitor::visitCommand(COMMAND c) {
 
             // NOTE: in theory, we don't need to do this, because it happens in the thread,
             // but better safe than sorry
-            bcm2835_gpio_write(VALVE1, LOW);
+            bcm2835_gpio_write(MAIN_VALVE, LOW);
             bcm2835_gpio_write(IGN_START, LOW);
 
             break;

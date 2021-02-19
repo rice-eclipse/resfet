@@ -27,72 +27,72 @@ TitanVisitor::TitanVisitor(ConfigMapping& config)
 
 void TitanVisitor::visitCommand(COMMAND c) {
     switch (c) {
-        case UNSET_VALVE1: {
+        case UNSET_DRIVER1: {
 	    logger.info("Writing main valve off using pin %d\n", MAIN_VALVE);
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             break;
         }
-        case SET_VALVE1: {
+        case SET_DRIVER1: {
 	    logger.info("Writing main valve on using pin %d\n", MAIN_VALVE);
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
             break;
         }
-        case SET_VALVE2: {
-            logger.info("Turning vent on using pin %d\n", VENT_VALVE);
-            bcm2835_gpio_write(VENT_VALVE, LOW);
-            break;
-        }
-        case UNSET_VALVE2: {
+        case UNSET_DRIVER2: {
             logger.info("Turning vent off using pin %d\n", VENT_VALVE);
             bcm2835_gpio_write(VENT_VALVE, HIGH);
             break;
         }
-        case UNSET_VALVE3: {
+        case SET_DRIVER2: {
+            logger.info("Turning vent on using pin %d\n", VENT_VALVE);
+            bcm2835_gpio_write(VENT_VALVE, LOW);
+            break;
+        }
+        case UNSET_DRIVER3: {
 	    logger.info("Writing tank valve off using pin %d\n", TANK_VALVE);
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             break;
         }
-        case SET_VALVE3: {
+        case SET_DRIVER3: {
 	    logger.info("Writing tank valve on using pin %d\n", TANK_VALVE);
             bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
-        case LEAK_CHECK: {
+        case TITAN_LEAK_CHECK: {
             logger.info("Entering leak check preset\n");
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
             bcm2835_gpio_write(VENT_VALVE, HIGH);
             bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
-        case FILL: {
+        case TITAN_FILL: {
             logger.info("Entering fill preset\n");
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
             bcm2835_gpio_write(VENT_VALVE, HIGH);
             bcm2835_gpio_write(TANK_VALVE, LOW);
             break;
         }
-        case FILL_IDLE: {
+        case TITAN_FILL_IDLE: {
             logger.info("Entering fill idle preset\n");
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             bcm2835_gpio_write(VENT_VALVE, HIGH);
             bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
-        case DEF: {
+        case TITAN_DEF: {
             logger.info("Entering default preset\n");
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             bcm2835_gpio_write(VENT_VALVE, LOW);
             bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
-	case TAPE_ON: {
-	    logger.info("Turning heating tape on using pin %d\n", HEATING_TAPE);
-            bcm2835_gpio_write(HEATING_TAPE, HIGH);
-	}
-	case TAPE_OFF: {
-	    logger.info("Turning heating tape off using pin %d\n", HEATING_TAPE);
-            bcm2835_gpio_write(HEATING_TAPE, LOW);
-	}
+        case TITAN_TAPE_ON: {
+            logger.info("Turning heating tape on using pin %d\n", HEATING_TAPE);
+                bcm2835_gpio_write(HEATING_TAPE, HIGH);
+        }
+        case TITAN_TAPE_OFF: {
+            logger.info("Turning heating tape off using pin %d\n", HEATING_TAPE);
+                bcm2835_gpio_write(HEATING_TAPE, LOW);
+        }
         default: {
             // Defer to super visitor
             WorkerVisitor::visitCommand(c);

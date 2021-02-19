@@ -43,32 +43,32 @@ LunaVisitor::LunaVisitor(ConfigMapping& config)
 
 void LunaVisitor::visitCommand(COMMAND c) {
     switch (c) {
-        case UNSET_VALVE1: {
+        case UNSET_DRIVER1: {
 	    logger.info("Writing main valve off using pin %d\n", MAIN_VALVE);
             bcm2835_gpio_write(MAIN_VALVE, LOW);
             break;
         }
-        case SET_VALVE1: {
+        case SET_DRIVER1: {
 	    logger.info("Writing main valve on using pin %d\n", MAIN_VALVE);
             bcm2835_gpio_write(MAIN_VALVE, HIGH);
             break;
         }
-        case UNSET_VALVE2: {
-	    logger.info("Writing water valve off using pin %d\n", WATER_VALVE);
-            bcm2835_gpio_write(WATER_VALVE, LOW);
+        case UNSET_DRIVER2: {
+	    logger.info("Writing pressurization valve off using pin %d\n", PRESSURE_VALVE);
+            bcm2835_gpio_write(PRESSURE_VALVE, LOW);
             break;
         }
-        case SET_VALVE2: {
-	    logger.info("Writing water valve on using pin %d\n", WATER_VALVE);
-            bcm2835_gpio_write(WATER_VALVE, HIGH);
+        case SET_DRIVER2: {
+	    logger.info("Writing pressurization valve on using pin %d\n", PRESSURE_VALVE);
+            bcm2835_gpio_write(PRESSURE_VALVE, HIGH);
             break;
         }
-        case UNSET_VALVE3: {
+        case UNSET_DRIVER3: {
 	    logger.info("Writing GITVC valve off using pin %d\n", GITVC_VALVE);
             bcm2835_gpio_write(GITVC_VALVE, LOW);
             break;
         }
-        case SET_VALVE3: {
+        case SET_DRIVER3: {
 	    logger.info("Writing GITVC valve on using pin %d\n", GITVC_VALVE);
             bcm2835_gpio_write(GITVC_VALVE, HIGH);
             break;
