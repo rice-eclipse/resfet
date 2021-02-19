@@ -29,8 +29,8 @@ void initialize_pins() {
     bcm2835_gpio_fsel(MAIN_VALVE, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(MAIN_VALVE, LOW);
 
-    bcm2835_gpio_fsel(WATER_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(WATER_VALVE, LOW);
+    bcm2835_gpio_fsel(PRESSURE_VALVE, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(PRESSURE_VALVE, LOW);
 
     bcm2835_gpio_fsel(HEATING_TAPE, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(HEATING_TAPE, LOW);
