@@ -32,18 +32,19 @@ void initialize_pins() {
     bcm2835_gpio_fsel(PRESSURE_VALVE, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(PRESSURE_VALVE, LOW);
 
-    bcm2835_gpio_fsel(HEATING_TAPE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(HEATING_TAPE, LOW);
-
-
-    // GITVC_VALVE active low
     bcm2835_gpio_fsel(GITVC_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(GITVC_VALVE, HIGH);
+    bcm2835_gpio_write(GITVC_VALVE, HIGH); // GITVC_VALVE low is open, HIGH is closed
+
+    // TODO: DELETE THIS SECTION BELOW
+    bcm2835_gpio_fsel(DRIVER4, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(DRIVER4, LOW);
+    bcm2835_gpio_fsel(DRIVER5, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(DRIVER5, LOW);
+    // TODO: DELETE THIS SECTION ABOVE
+
 
     bcm2835_gpio_fsel(IGN_START, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(IGN_START, LOW);
-
-    return;
 }
 
 void titan_initialize_pins() {
@@ -69,10 +70,6 @@ void titan_initialize_pins() {
 
     bcm2835_gpio_fsel(HEATING_TAPE, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(HEATING_TAPE, LOW);
-
-    // GITVC_VALVE active low
-    bcm2835_gpio_fsel(GITVC_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(GITVC_VALVE, HIGH);
 
     bcm2835_gpio_fsel(IGN_START, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(IGN_START, LOW);
