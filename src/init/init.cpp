@@ -29,21 +29,11 @@ void initialize_pins() {
     bcm2835_gpio_fsel(MAIN_VALVE, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(MAIN_VALVE, LOW);
 
-    bcm2835_gpio_fsel(WATER_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(WATER_VALVE, LOW);
-
-    bcm2835_gpio_fsel(HEATING_TAPE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(HEATING_TAPE, LOW);
-
-
-    // GITVC_VALVE active low
-    bcm2835_gpio_fsel(GITVC_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(GITVC_VALVE, HIGH);
+    bcm2835_gpio_fsel(PRESSURE_VALVE, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(PRESSURE_VALVE, LOW);
 
     bcm2835_gpio_fsel(IGN_START, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(IGN_START, LOW);
-
-    return;
 }
 
 void titan_initialize_pins() {
@@ -58,21 +48,14 @@ void titan_initialize_pins() {
     bcm2835_gpio_write(ADC_2_CS, HIGH);
 
     // Set all the ignition and relay outputs to LOW so that they don't trigger.
-    bcm2835_gpio_fsel(MAIN_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(MAIN_VALVE, LOW);
+    bcm2835_gpio_fsel(MAIN_FEED_VALVE, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(MAIN_FEED_VALVE, LOW);
 
-    bcm2835_gpio_fsel(VENT_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(VENT_VALVE, LOW); // VENT_VALVE LOW is open, HIGH is closed
+    bcm2835_gpio_fsel(OXI_VALVE, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(OXI_VALVE, LOW);
 
-    bcm2835_gpio_fsel(TANK_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(TANK_VALVE, HIGH);
-
-    bcm2835_gpio_fsel(HEATING_TAPE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(HEATING_TAPE, LOW);
-
-    // GITVC_VALVE active low
-    bcm2835_gpio_fsel(GITVC_VALVE, BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_write(GITVC_VALVE, HIGH);
+    bcm2835_gpio_fsel(GROUND_VENT_VALVE, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(GROUND_VENT_VALVE, LOW);
 
     bcm2835_gpio_fsel(IGN_START, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(IGN_START, LOW);

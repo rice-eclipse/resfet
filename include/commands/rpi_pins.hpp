@@ -14,28 +14,31 @@
 
 #include <bcm2835.h>
 
+// Definitions for 3 ADCs
 #define ADC_0_CS RPI_V2_GPIO_P1_26
 #define ADC_1_CS RPI_V2_GPIO_P1_24
 #define ADC_2_CS RPI_V2_GPIO_P1_22
-
-#define VALVE1 RPI_V2_GPIO_P1_11
-#define VALVE2 RPI_V2_GPIO_P1_13
-#define VALVE3 RPI_V2_GPIO_P1_16
-#define IGN_START RPI_V2_GPIO_P1_15
-
 #define LC_ADC ADC_2_CS
 #define PT_ADC ADC_1_CS
-#define TC_ADC ADC_1_CS
+#define TC_ADC ADC_0_CS
+
+// Definitions for 6 Drivers
+#define DRIVER1 RPI_V2_GPIO_P1_11
+#define DRIVER2 RPI_V2_GPIO_P1_13
+#define DRIVER3 RPI_V2_GPIO_P1_15
+#define DRIVER4 RPI_V2_GPIO_P1_18
+#define DRIVER5 RPI_V2_GPIO_P1_33
+#define DRIVER6 RPI_V2_GPIO_P1_32
 
 // defines for Luna
-#define MAIN_VALVE VALVE1
-#define WATER_VALVE VALVE2 // Water
-#define GITVC_VALVE VALVE3 // GITVC
+#define MAIN_VALVE DRIVER1
+#define PRESSURE_VALVE DRIVER2
+#define IGN_START DRIVER6
 
 // defines for Titan
-#define MAIN_VALVE VALVE1
-#define VENT_VALVE VALVE2
-#define TANK_VALVE VALVE3
-#define HEATING_TAPE RPI_V2_GPIO_P1_15
+#define MAIN_FEED_VALVE DRIVER1
+#define OXI_VALVE DRIVER2
+#define GROUND_VENT_VALVE DRIVER3
+#define IGN_START DRIVER6
 
 #endif // __RPI_PINS_HPP

@@ -24,25 +24,43 @@
 // Time between checks for ignition state, in milliseconds (see WorkerVisitor::doIgn())
 #define IGN_CHECK_MS 50
 
+/**
+ * 0 - 13 (inclusive) are reserved for general I/O.
+ * 14 - 31 (inclusive) are reserved for Luna & Titan macros.
+ */
 enum COMMAND: uint8_t {
-    UNSET_VALVE1 = 0,
-    SET_VALVE1,
-    UNSET_VALVE2,
-    SET_VALVE2,
-    UNSET_VALVE3,
-    SET_VALVE3,
-    START_IGNITION,
-    STOP_IGNITION,
-    SET_WATER,
-    UNSET_WATER,
-    SET_GITVC,
-    UNSET_GITVC,
-    LEAK_CHECK,
-    FILL,
-    FILL_IDLE,
-    DEF,
-    TAPE_ON,
-    TAPE_OFF,
+    UNSET_DRIVER1 = 0,
+    SET_DRIVER1,
+    UNSET_DRIVER2,
+    SET_DRIVER2,
+    UNSET_DRIVER3,
+    SET_DRIVER3,
+    UNSET_DRIVER4,
+    SET_DRIVER4,
+    UNSET_DRIVER5,
+    SET_DRIVER5,
+	UNSET_DRIVER6,
+    SET_DRIVER6,
+	STOP_IGNITION, // Analogous to UNSET_DRIVER6
+    START_IGNITION, // Analogous to SET_DRIVER6
+	TITAN_LEAK_CHECK,
+    TITAN_FILL,
+    TITAN_FILL_IDLE,
+    TITAN_TAPE_ON,
+    TITAN_TAPE_OFF,
+    TITAN_DEF,
+	RESERVED20,
+	RESERVED21,
+	RESERVED22,
+	RESERVED23,
+	RESERVED24,
+	RESERVED25,
+	RESERVED26,
+	RESERVED27,
+	RESERVED28,
+	RESERVED29,
+	RESERVED30,
+	RESERVED31,
     NUM_COMMANDS
 };
 
