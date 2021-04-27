@@ -48,7 +48,7 @@ enum SENSOR: uint8_t {
 		PT4,
 		TC1,
 		TC2,
-		TC3
+		TC3,
 		NUM_SENSORS
 };
 
