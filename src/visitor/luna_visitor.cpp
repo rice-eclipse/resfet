@@ -63,16 +63,6 @@ void LunaVisitor::visitCommand(COMMAND c) {
             bcm2835_gpio_write(PRESSURE_VALVE, HIGH);
             break;
         }
-        case UNSET_DRIVER3: {
-	    logger.info("Writing GITVC valve off using pin %d\n", GITVC_VALVE);
-            bcm2835_gpio_write(GITVC_VALVE, LOW);
-            break;
-        }
-        case SET_DRIVER3: {
-	    logger.info("Writing GITVC valve on using pin %d\n", GITVC_VALVE);
-            bcm2835_gpio_write(GITVC_VALVE, HIGH);
-            break;
-        }
         default: {
             // Defer to super visitor
 	    WorkerVisitor::visitCommand(c);
