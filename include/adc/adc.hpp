@@ -42,15 +42,13 @@ enum SENSOR: uint8_t {
 		LC2,
 		LC3,
 		LC4,
-		LC5,
 		PT1,
 		PT2,
 		PT3,
 		PT4,
 		TC1,
 		TC2,
-		TC3,
-		TC4,
+		TC3
 		NUM_SENSORS
 };
 
