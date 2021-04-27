@@ -94,12 +94,11 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    SENSOR lcs[5] = {
+    SENSOR lcs[4] = {
         SENSOR::LC1,
         SENSOR::LC2,
         SENSOR::LC3,
-        SENSOR::LC4,
-        SENSOR::LC5,
+        SENSOR::LC4
     };
 
     SENSOR pts[4] = {
@@ -109,11 +108,10 @@ int main(int argc, char **argv) {
         SENSOR::PT4,
      };
 
-    SENSOR tcs[4] = {
+    SENSOR tcs[3] = {
         SENSOR::TC1,
         SENSOR::TC2,
-        SENSOR::TC3,
-        SENSOR::TC4
+        SENSOR::TC3
     };
     
     // Retrieve pressure cutoff info from the map
@@ -130,9 +128,9 @@ int main(int argc, char **argv) {
     }
     
     // TODO only PT thread needs the shutoff
-    PeriodicThread lc_thread("Load Cell Thread", SENSOR_FREQS[SENSOR::LC1], lcs, 5, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    PeriodicThread lc_thread("Load Cell Thread", SENSOR_FREQS[SENSOR::LC1], lcs, 4, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
     PeriodicThread pt_thread("Pressure Transducer Thread", SENSOR_FREQS[SENSOR::PT1], pts, 4, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
-    PeriodicThread tc_thread("Thermocouple Thread", SENSOR_FREQS[SENSOR::TC1], tcs, 4, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
+    PeriodicThread tc_thread("Thermocouple Thread", SENSOR_FREQS[SENSOR::TC1], tcs, 3, pressureMax, pressureMin, pressureSlope, pressureYint, &sock);
     lc_thread.start();
     pt_thread.start();
     tc_thread.start();
