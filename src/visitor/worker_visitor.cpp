@@ -23,7 +23,7 @@
 #include "visitor/worker_visitor.hpp"
 
 // Forward declaration for use in constructor
-static void ignThreadFunc(timestamp_t, timestamp_t, timestamp_t, bool);
+static void ignThreadFunc(timestamp_t, timestamp_t, timestamp_t, bool, int);
 
 const char *command_names[NUM_COMMANDS] = {
     "UNSET_DRIVER1",
@@ -82,15 +82,27 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
     logger.debug("shutoff_enabled: %d\n", enableShutoff);
 
     ignitionOn.store(false);
+    
+    bool engine_type;
+    config.getBool("Main", "engine_type", &engine_type);
 
     // Create a persistent ignition monitor thread
-    std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff);
-    t.detach();
+    if (engine_type) {
+        // Titan Engine
+        ignThreadLogger.info("Creating ignition monitor thread for TITAN engine.\n");
+        std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff, -1);
+        t.detach();
+    } else {
+        // Luna Engine
+        ignThreadLogger.info("Creating ignition monitor thread for LUNA engine.\n");
+        std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff, MAIN_VALVE);
+        t.detach();
+    }
 }
 
 static Logger ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
 
-static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp_t pressureShutoffDelay, bool enableShutoff) {
+static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp_t pressureShutoffDelay, bool enableShutoff, int32_t valve) {
     ignThreadLogger.info("Ignition monitor thread started\n");
     set_start_time();
 
@@ -107,7 +119,7 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
             std::this_thread::sleep_for(std::chrono::milliseconds(IGN_CHECK_MS));
         }
 
-        ignThreadLogger.info("Received burn signal, starting burn\n");
+        ignThreadLogger.info("Received ignition signal.\n");
 
         // Keep track of ignition time
         initTime = get_elapsed_time_ms();
@@ -115,26 +127,30 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
 
         // Write HIGH to the ignition pin
         bcm2835_gpio_write(IGN_START, HIGH);
+        ignThreadLogger.info("Igniting the ignitors. Writing high on %d\n", IGN_START);
 
         // Loop while there is time left for ignition
         while (timeElapsed < time) {
             // Check if the main valve should be opened
             if (!mainOpen && timeElapsed > preigniteTime) {
-                bcm2835_gpio_write(MAIN_VALVE, HIGH);
-                mainOpen = true;
-                ignThreadLogger.info("Preignite time elapsed, opening main valve.\n");
+
+                if (valve >= 0) {
+                    bcm2835_gpio_write(valve, HIGH);
+                    mainOpen = true;
+                    ignThreadLogger.info("Preignite time elapsed. Opening valve %d\n", valve);
+                }
             }
             
             // Check if pressure shutoff has been indicated from the sensor thread
             if (timeElapsed > pressureShutoffDelay && enableShutoff && pressureShutoff.load()) {
-                ignThreadLogger.info("Pressure shutoff indicated, closing valve and ending burn.\n");
+                ignThreadLogger.info("Pressure shutoff indicated.\n");
                 break;
             }
 
             // Check ignitionOn to see if we should stop the burn
             if (!ignitionOn.load()) {
                 // Main thread has indicated an ignition stop, so close everything
-                ignThreadLogger.info("Emergency stop indicated, closing valve and ending burn.\n");
+                ignThreadLogger.info("Emergency stop indicated.\n");
                 break;
             }
 
@@ -144,10 +160,17 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
         }
 
         // Burn time has elapsed, shut it off and indicate
-        bcm2835_gpio_write(MAIN_VALVE, LOW);
+        if (valve >= 0) {
+            bcm2835_gpio_write(valve, LOW);
+            ignThreadLogger.info("Closing valve %d\n", valve);
+        }
+        
         bcm2835_gpio_write(IGN_START, LOW);
+        ignThreadLogger.info("Finished igniting the ignitors. Writing low on %d\n", IGN_START);
+
         ignitionOn.store(false);
         mainOpen = false;
+
         ignThreadLogger.info("Burn has ended.\n");
     }
 
