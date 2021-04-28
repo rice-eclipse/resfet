@@ -23,7 +23,7 @@
 #include "visitor/worker_visitor.hpp"
 
 // Forward declaration for use in constructor
-static void ignThreadFunc(timestamp_t, timestamp_t, timestamp_t, bool, int);
+static void ignThreadFunc(timestamp_t, timestamp_t, timestamp_t, bool, int32_t);
 
 const char *command_names[NUM_COMMANDS] = {
     "UNSET_DRIVER1",
@@ -89,12 +89,12 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
     // Create a persistent ignition monitor thread
     if (engine_type) {
         // Titan Engine
-        ignThreadLogger.info("Creating ignition monitor thread for TITAN engine.\n");
+        logger.info("Creating ignition monitor thread for TITAN engine.\n");
         std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff, -1);
         t.detach();
     } else {
         // Luna Engine
-        ignThreadLogger.info("Creating ignition monitor thread for LUNA engine.\n");
+        logger.info("Creating ignition monitor thread for LUNA engine.\n");
         std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff, MAIN_VALVE);
         t.detach();
     }
@@ -164,7 +164,7 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
             bcm2835_gpio_write(valve, LOW);
             ignThreadLogger.info("Closing valve %d\n", valve);
         }
-        
+
         bcm2835_gpio_write(IGN_START, LOW);
         ignThreadLogger.info("Finished igniting the ignitors. Writing low on %d\n", IGN_START);
 
