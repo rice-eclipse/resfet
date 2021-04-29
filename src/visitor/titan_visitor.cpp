@@ -85,16 +85,6 @@ void TitanVisitor::visitCommand(COMMAND c) {
             // bcm2835_gpio_write(TANK_VALVE, HIGH);
             break;
         }
-        case START_IGNITION: {
-            logger.info("Writing high to ignition pin %d\n", IGN_START);
-            bcm2835_gpio_write(IGN_START, HIGH);
-            break;
-        }
-        case STOP_IGNITION: {
-            logger.info("Writing low to ignition pin %d\n", IGN_START);
-            bcm2835_gpio_write(IGN_START, LOW);
-            break;
-        }
         default: {
             // Defer to super visitor
             WorkerVisitor::visitCommand(c);
