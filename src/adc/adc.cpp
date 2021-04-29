@@ -43,15 +43,15 @@ RPiGPIOPin SENSOR_PINS[SENSOR::NUM_SENSORS] = {
 };
 
 uint8_t SENSOR_CHANNELS[NUM_SENSORS] = {
-	4, // LC1 (prev. LC_MAIN)
+	0, // LC1 (prev. LC_MAIN)
 	1, // LC2
-	3, // LC3
-	0, // LC4
+	2, // LC3
+	3, // LC4
 
-	2, // PT_COMBUSTION
-	1, // PT_INJECTOR
-	0, // PT_FEED
-	3, // PT_OXI
+	3, // PT_COMBUSTION
+	2, // PT_INJECTOR
+	1, // PT_FEED
+	0, // PT_OXI
 
 	4, // TC1
 	5, // TC2
