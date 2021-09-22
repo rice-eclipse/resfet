@@ -36,63 +36,63 @@ const char *command_names[NUM_COMMANDS] = {
     "SET_DRIVER4",
     "UNSET_DRIVER5",
     "SET_DRIVER5",
-	"UNSET_DRIVER6",
+    "UNSET_DRIVER6",
     "SET_DRIVER6",
-	"STOP_IGNITION", // Analogous to UNSET_DRIVER6
+    "STOP_IGNITION",  // Analogous to UNSET_DRIVER6
     "START_IGNITION", // Analogous to SET_DRIVER6
-	"TITAN_LEAK_CHECK",
+    "TITAN_LEAK_CHECK",
     "TITAN_FILL",
     "TITAN_FILL_IDLE",
     "TITAN_TAPE_ON",
     "TITAN_TAPE_OFF",
     "TITAN_DEF",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED",
-	"RESERVED"   
-};
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED",
+    "RESERVED"};
 
 WorkerVisitor::WorkerVisitor()
-    : config(ConfigMapping())
-    , logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
+    : config(ConfigMapping()), logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
 {
     // TODO have this at all?
 }
 
-WorkerVisitor::WorkerVisitor(ConfigMapping& config)
-    : config(config)
-    , logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
+WorkerVisitor::WorkerVisitor(ConfigMapping &config)
+    : config(config), logger("Visitor Logger", "Visitor_Logger", LogLevel::DEBUG)
 {
-	config.getInt("Worker", "preignite_ms", &preignite_ms);
-	config.getInt("Worker", "hotflow_ms", &hotflow_ms);
-	config.getInt("Pressure", "pressureshutoff_ms", &pressureshutoff_ms);
-	config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
+    config.getInt("Worker", "preignite_ms", &preignite_ms);
+    config.getInt("Worker", "hotflow_ms", &hotflow_ms);
+    config.getInt("Pressure", "pressureshutoff_ms", &pressureshutoff_ms);
+    config.getBool("Pressure", "shutoff_enabled", &enableShutoff);
 
-	logger.debug("preignite_ms: %d\n", preignite_ms);
-	logger.debug("hotflow_ms: %d\n", hotflow_ms);
+    logger.debug("preignite_ms: %d\n", preignite_ms);
+    logger.debug("hotflow_ms: %d\n", hotflow_ms);
     logger.debug("pressureshutoff_ms: %d\n", pressureshutoff_ms);
     logger.debug("shutoff_enabled: %d\n", enableShutoff);
 
     ignitionOn.store(false);
-    
+
     bool engine_type;
     config.getBool("Main", "engine_type", &engine_type);
 
     // Create a persistent ignition monitor thread
-    if (engine_type) {
+    if (engine_type)
+    {
         // Titan Engine
         logger.info("Creating ignition monitor thread for TITAN engine.\n");
         std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff, -1);
         t.detach();
-    } else {
+    }
+    else
+    {
         // Luna Engine
         logger.info("Creating ignition monitor thread for LUNA engine.\n");
         std::thread t(ignThreadFunc, hotflow_ms, preignite_ms, pressureshutoff_ms, enableShutoff, MAIN_VALVE);
@@ -102,7 +102,8 @@ WorkerVisitor::WorkerVisitor(ConfigMapping& config)
 
 static Logger ignThreadLogger = Logger("Ign Thread", "IgnThreadLog", LogLevel::DEBUG);
 
-static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp_t pressureShutoffDelay, bool enableShutoff, int32_t valve) {
+static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp_t pressureShutoffDelay, bool enableShutoff, int32_t valve)
+{
     ignThreadLogger.info("Ignition monitor thread started\n");
     set_start_time();
 
@@ -110,45 +111,55 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
     timestamp_t initTime, timeElapsed;
 
     // Main thread loop, runs forever
-    while (true) {
+    while (true)
+    {
         ignThreadLogger.info("Monitor thread waiting for burn...\n");
 
         // Wait until the main worker thread indicates the start of a burn
-        while (!ignitionOn.load()) {
+        while (!ignitionOn.load())
+        {
             // Sleep for a bit so we're not checking every cycle
             std::this_thread::sleep_for(std::chrono::milliseconds(IGN_CHECK_MS));
         }
 
         ignThreadLogger.info("Received ignition signal.\n");
-
+        ignThreadLogger.info("Waiting a little bit for other threads to notice that ignition is ready.\n");
+        
+        //this will give other threads time to wake up and notice that they
+        //should sample faster
+        std::this_thread::sleep_for(std::chrono::milliseconds(nominal_poll_delay_ms * 2));
         // Keep track of ignition time
         initTime = get_elapsed_time_ms();
         timeElapsed = 0;
-
         // Write HIGH to the ignition pin
         bcm2835_gpio_write(IGN_START, HIGH);
         ignThreadLogger.info("Igniting the ignitors. Writing high on %d\n", IGN_START);
 
         // Loop while there is time left for ignition
-        while (timeElapsed < time) {
+        while (timeElapsed < time)
+        {
             // Check if the main valve should be opened
-            if (!mainOpen && timeElapsed > preigniteTime) {
+            if (!mainOpen && timeElapsed > preigniteTime)
+            {
 
-                if (valve >= 0) {
+                if (valve >= 0)
+                {
                     bcm2835_gpio_write(valve, HIGH);
                     mainOpen = true;
                     ignThreadLogger.info("Preignite time elapsed. Opening valve %d\n", valve);
                 }
             }
-            
+
             // Check if pressure shutoff has been indicated from the sensor thread
-            if (timeElapsed > pressureShutoffDelay && enableShutoff && pressureShutoff.load()) {
+            if (timeElapsed > pressureShutoffDelay && enableShutoff && pressureShutoff.load())
+            {
                 ignThreadLogger.info("Pressure shutoff indicated.\n");
                 break;
             }
 
             // Check ignitionOn to see if we should stop the burn
-            if (!ignitionOn.load()) {
+            if (!ignitionOn.load())
+            {
                 // Main thread has indicated an ignition stop, so close everything
                 ignThreadLogger.info("Emergency stop indicated.\n");
                 break;
@@ -160,13 +171,19 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
         }
 
         // Burn time has elapsed, shut it off and indicate
-        if (valve >= 0) {
+        if (valve >= 0)
+        {
             bcm2835_gpio_write(valve, LOW);
             ignThreadLogger.info("Closing valve %d\n", valve);
         }
 
-        bcm2835_gpio_write(IGN_START, LOW);
         ignThreadLogger.info("Finished igniting the ignitors. Writing low on %d\n", IGN_START);
+        bcm2835_gpio_write(IGN_START, LOW);
+        
+        ignThreadLogger.info("Waiting to set ignitionOn to false to give sensors time to collect last few bits of data.\n");
+        //sleep for a little bit and let the other threads continue collecting
+        //data at high speeds
+        std::this_thread::sleep_for(std::chrono::milliseconds(POST_FIRE_DELAY_MS));
 
         ignitionOn.store(false);
         mainOpen = false;
@@ -178,92 +195,110 @@ static void ignThreadFunc(timestamp_t time, timestamp_t preigniteTime, timestamp
     ignThreadLogger.error("Ignition thread broke out of main loop!\n");
 }
 
-void WorkerVisitor::visitCommand(COMMAND c) {
-    switch (c) {
-        case UNSET_DRIVER1: {
-	    logger.info("Writing driver 1 off using pin %d\n", DRIVER1);
-            bcm2835_gpio_write(DRIVER1, LOW);
-            break;
-        }
-        case SET_DRIVER1: {
-	    logger.info("Writing driver 1 on using pin %d\n", DRIVER1);
-            bcm2835_gpio_write(DRIVER1, HIGH);
-            break;
-        }
-        case UNSET_DRIVER2: {
-	    logger.info("Writing driver 2 off using pin %d\n", DRIVER2);
-            bcm2835_gpio_write(DRIVER2, LOW);
-            break;
-        }
-        case SET_DRIVER2: {
-	    logger.info("Writing driver 2 on using pin %d\n", DRIVER2);
-            bcm2835_gpio_write(DRIVER2, HIGH);
-            break;
-        }
-        case UNSET_DRIVER3: {
-	    logger.info("Writing driver 3 off using pin %d\n", DRIVER3);
-            bcm2835_gpio_write(DRIVER3, LOW);
-            break;
-        }
-        case SET_DRIVER3: {
-	    logger.info("Writing driver 3 on using pin %d\n", DRIVER3);
-            bcm2835_gpio_write(DRIVER3, HIGH);
-            break;
-        }
-        case UNSET_DRIVER4: {
-	    logger.info("Writing driver 4 off using pin %d\n", DRIVER4);
-            bcm2835_gpio_write(DRIVER4, LOW);
-            break;
-        }
-        case SET_DRIVER4: {
-	    logger.info("Writing driver 4 on using pin %d\n", DRIVER4);
-            bcm2835_gpio_write(DRIVER4, HIGH);
-            break;
-        }
-        case UNSET_DRIVER5: {
-	    logger.info("Writing driver 5 off using pin %d\n", DRIVER5);
-            bcm2835_gpio_write(DRIVER5, LOW);
-            break;
-        }
-        case SET_DRIVER5: {
-	    logger.info("Writing driver 5 on using pin %d\n", DRIVER5);
-            bcm2835_gpio_write(DRIVER5, HIGH);
-            break;
-        }
-        case UNSET_DRIVER6: {
-	    logger.info("Writing driver 6 off using pin %d\n", DRIVER6);
-            bcm2835_gpio_write(DRIVER6, LOW);
-            break;
-        }
-        case SET_DRIVER6: {
-	    logger.info("Writing driver 6 on using pin %d\n", DRIVER6);
-            bcm2835_gpio_write(DRIVER6, HIGH);
-            break;
-        }
-        case START_IGNITION: {
-            logger.info("Starting ignition\n");
-            doIgn();
-            break;
-        }
-        case STOP_IGNITION: {
-            logger.info("Stopping ignition\n");
-            ignitionOn.store(false);
+void WorkerVisitor::visitCommand(COMMAND c)
+{
+    switch (c)
+    {
+    case UNSET_DRIVER1:
+    {
+        logger.info("Writing driver 1 off using pin %d\n", DRIVER1);
+        bcm2835_gpio_write(DRIVER1, LOW);
+        break;
+    }
+    case SET_DRIVER1:
+    {
+        logger.info("Writing driver 1 on using pin %d\n", DRIVER1);
+        bcm2835_gpio_write(DRIVER1, HIGH);
+        break;
+    }
+    case UNSET_DRIVER2:
+    {
+        logger.info("Writing driver 2 off using pin %d\n", DRIVER2);
+        bcm2835_gpio_write(DRIVER2, LOW);
+        break;
+    }
+    case SET_DRIVER2:
+    {
+        logger.info("Writing driver 2 on using pin %d\n", DRIVER2);
+        bcm2835_gpio_write(DRIVER2, HIGH);
+        break;
+    }
+    case UNSET_DRIVER3:
+    {
+        logger.info("Writing driver 3 off using pin %d\n", DRIVER3);
+        bcm2835_gpio_write(DRIVER3, LOW);
+        break;
+    }
+    case SET_DRIVER3:
+    {
+        logger.info("Writing driver 3 on using pin %d\n", DRIVER3);
+        bcm2835_gpio_write(DRIVER3, HIGH);
+        break;
+    }
+    case UNSET_DRIVER4:
+    {
+        logger.info("Writing driver 4 off using pin %d\n", DRIVER4);
+        bcm2835_gpio_write(DRIVER4, LOW);
+        break;
+    }
+    case SET_DRIVER4:
+    {
+        logger.info("Writing driver 4 on using pin %d\n", DRIVER4);
+        bcm2835_gpio_write(DRIVER4, HIGH);
+        break;
+    }
+    case UNSET_DRIVER5:
+    {
+        logger.info("Writing driver 5 off using pin %d\n", DRIVER5);
+        bcm2835_gpio_write(DRIVER5, LOW);
+        break;
+    }
+    case SET_DRIVER5:
+    {
+        logger.info("Writing driver 5 on using pin %d\n", DRIVER5);
+        bcm2835_gpio_write(DRIVER5, HIGH);
+        break;
+    }
+    case UNSET_DRIVER6:
+    {
+        logger.info("Writing driver 6 off using pin %d\n", DRIVER6);
+        bcm2835_gpio_write(DRIVER6, LOW);
+        break;
+    }
+    case SET_DRIVER6:
+    {
+        logger.info("Writing driver 6 on using pin %d\n", DRIVER6);
+        bcm2835_gpio_write(DRIVER6, HIGH);
+        break;
+    }
+    case START_IGNITION:
+    {
+        logger.info("Starting ignition\n");
+        doIgn();
+        break;
+    }
+    case STOP_IGNITION:
+    {
+        logger.info("Stopping ignition\n");
+        ignitionOn.store(false);
 
-            // NOTE: in theory, we don't need to do this, because it happens in the thread,
-            // but better safe than sorry
-            bcm2835_gpio_write(MAIN_VALVE, LOW);
-            bcm2835_gpio_write(IGN_START, LOW);
+        // NOTE: in theory, we don't need to do this, because it happens in the thread,
+        // but better safe than sorry
+        bcm2835_gpio_write(MAIN_VALVE, LOW);
+        bcm2835_gpio_write(IGN_START, LOW);
 
-            break;
-        }
-        default: {
-	        logger.error("Command not handled: %d\n", c);
-            break;
-        }
+        break;
+    }
+    default:
+    {
+        logger.error("Command not handled: %d\n", c);
+        break;
+    }
     }
 }
 
-void WorkerVisitor::doIgn() {
+void WorkerVisitor::doIgn()
+{
     ignitionOn.store(true);
     pressureShutoff.store(false);
 }
