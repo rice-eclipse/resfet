@@ -27,12 +27,16 @@
 #define DEFAULT_PRESSURE_SLOPE -0.3
 #define DEFAULT_PRESSURE_YINT 1108.1
 
+
 // Global lock for ignition state
 // TODO: move this to a more appropriate place?
 std::atomic<bool> ignitionOn;   
 
 // Global lock for extreme low/high pressure, for safety shutoff
 std::atomic<bool> pressureShutoff;   
+
+//number of milliseconds between polls when not in ignition cycles
+const long int nominal_poll_delay_ms = 100;
 
 // Simple send test for UDP interface
 int main(int argc, char **argv) {
