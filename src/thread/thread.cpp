@@ -94,6 +94,8 @@ static void *threadFunc(adc_reader reader, std::vector<Logger> *loggers,
 	timestamp_t timestamp, old_timestamp = 0;
 	uint16_t reading;
 	uint8_t *b = new uint8_t[BUFF_SIZE];
+
+	auto cbuf = std::make_shared<circular_buffer>((SENSOR)13, 4);
 	BUFF_STATUS status;
 
 	// Running average for PT_COMB
@@ -154,7 +156,6 @@ static void *threadFunc(adc_reader reader, std::vector<Logger> *loggers,
 					pressureShutoff.store(false);
 				}
 
-				auto cbuf = std::make_shared<circular_buffer>((SENSOR) 13, 2);
 				uint8_t driver_message = 0;
 				driver_message |= bcm2835_gpio_lev(DRIVER1) << 1;
 				driver_message |= bcm2835_gpio_lev(DRIVER2) << 2;
@@ -162,24 +163,26 @@ static void *threadFunc(adc_reader reader, std::vector<Logger> *loggers,
 				driver_message |= bcm2835_gpio_lev(DRIVER4) << 4;
 				driver_message |= bcm2835_gpio_lev(DRIVER5) << 5;
 				driver_message |= bcm2835_gpio_lev(DRIVER6) << 6;
-				cbuf->push_data_item(driver_message, get_elapsed_time_us());
-				cbuf->get_data(&b, BUFF_SIZE);
+				status = cbuf->push_data_item(driver_message, get_elapsed_time_us());
+				if (status == BUFF_STATUS::FULL) {
+					cbuf->get_data(&b, BUFF_SIZE);
 
-				if (sock != NULL && sock->getFd() != 1) {
-					try {
-						sock->sendBuf(b, 12);
-					}
-					catch (Udp::OpFailureException &)
-					{
-						printf("Op failure!\n");
-					}
-					catch (Udp::BadOutSocketException &)
-					{
-						printf("Bad socket!\n");
-					}
-					catch (...)
-					{
-						printf("Unknown error!\n");
+					if (sock != NULL && sock->getFd() != -1) {
+						try {
+							sock->sendBuf(b, BUFF_SIZE);
+						}
+						catch (Udp::OpFailureException &)
+						{
+							printf("Op failure!\n");
+						}
+						catch (Udp::BadOutSocketException &)
+						{
+							printf("Bad socket!\n");
+						}
+						catch (...)
+						{
+							printf("Unknown error!\n");
+						}
 					}
 				}
 			}

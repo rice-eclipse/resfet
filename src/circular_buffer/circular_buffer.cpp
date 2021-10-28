@@ -78,7 +78,7 @@ BUFF_STATUS circular_buffer::pop_data_item(uint8_t *item) {
 
 	/* Check if the buffer is empty */
 	if (head == tail) {
-		printf("Buffer is empty\n");
+		//printf("Buffer is empty\n");
 		return BUFF_STATUS::EMPTY;
 	}
 
