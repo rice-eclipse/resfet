@@ -95,7 +95,7 @@ static void *threadFunc(adc_reader reader, std::vector<Logger> *loggers,
 	uint16_t reading;
 	uint8_t *b = new uint8_t[BUFF_SIZE];
 
-	auto cbuf = std::make_shared<circular_buffer>((SENSOR)13, 4);
+	auto cbuf = std::make_shared<circular_buffer>((SENSOR)13, 20);
 	BUFF_STATUS status;
 
 	// Running average for PT_COMB
