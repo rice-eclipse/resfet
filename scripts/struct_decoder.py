@@ -9,13 +9,8 @@ is hard-coded based on the format of the data written to the binary logs.
 format_string = "h6xQ"
 read_filepath = "./"
 write_filepath = "./"
-# filenames = ["LC1", "LC2", "LC3", "LC4", "LC5", "PT1", "PT2", "PT3", "PT4", "TC1", "TC2", "TC3", "TC4"]
-# filenames = ["LC1", "PT1", "PT2", "PT3", "PT4", "TC1", "TC2", "TC3"]
-cals = {"LC1": (0.4321, -304.38),
-        # "LC2": (-0.0044 * 2.20462, -2.5306 * 2.20462),
-        # "LC3": (-0.0043 * 2.20462, 16.128 * 2.20462),
-        # "LC4": (1, 0), 
-        # "LC5": (1, 0), 
+
+cals = {"LC1": (0.4321, -304.38), 
         "PT1": (0.378, -250.33),
         "PT2": (-0.2834, 1020.2),
         "PT3": (-0.3431, 1277.0),
@@ -23,7 +18,6 @@ cals = {"LC1": (0.4321, -304.38),
         "TC1": (-0.1676, 308.4),
         "TC2": (0.1611, -250),
         "TC3": (0.1611, -250),
-        # "TC4": (0.1611, -250)
         }
 
 keys = cals.keys()
