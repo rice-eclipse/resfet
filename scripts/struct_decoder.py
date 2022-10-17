@@ -25,7 +25,7 @@ filenames = []
 
 for _, _, names in os.walk(read_filepath):
     for file in names:
-        if any(substring in file for substring in keys):
+        if any(substring in file for substring in keys) and ("Decoded" not in file):
             filenames.append(file)
 
 
